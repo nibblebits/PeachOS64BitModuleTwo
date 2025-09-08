@@ -58,6 +58,101 @@ int window_system_initialize_stage2()
     return 0;
 }
 
+void window_draw_title_bar(struct window* window, struct framebuffer_pixel title_bar_bg_color)
+{
+    if (!window || !window->title_bar_graphics)
+    {
+        return;
+    }
+
+    size_t total_window_width_bounds = window->title_bar_graphics->width;
+    size_t icon_pos_x = window->title_bar_components.close_btn.x;
+    size_t icon_pos_y = window->title_bar_components.close_btn.y;
+    const char* title = window->title;
+
+    //draww the background of the title bar
+    terminal_draw_rect(window->title_bar_terminal, 0, 0, total_window_width_bounds, WINDOW_TITLE_BAR_HEIGHT, title_bar_bg_color);
+
+    // Draw the title text
+    terminal_cursor_set(window->title_bar_terminal, 0, 0);
+    terminal_print(window->title_bar_terminal, title);
+
+    // Draw the close icon ignoring white
+    struct framebuffer_pixel white_color = {0};
+    white_color.red = 0xff;
+    white_color.green = 0xff;
+    white_color.blue = 0xff;
+    terminal_ignore_color(window->title_bar_terminal, white_color);
+    terminal_draw_image(window->title_bar_terminal, icon_pos_x, icon_pos_y, close_icon);
+    terminal_ignore_color_finish(window->title_bar_terminal);
+}
+
+int window_reorder(void* first_elem, void* second_elem)
+{
+    struct window* win1 = *(struct window**)(first_elem);
+    struct window* win2 = *(struct window**)(second_elem);
+
+    return (win1->zindex < win2->zindex);
+}
+
+void window_set_z_index(struct window* window, int zindex)
+{
+    graphics_set_z_index(window->root_graphics, zindex);
+
+    // We need to reorder the windows vector now that zindex changed
+    vector_reorder(windows_vector, window_reorder);
+}
+
+void window_unfocus(struct window* old_focused_window)
+{
+    struct framebuffer_pixel black = {0};
+    black.red = 0x00;
+    black.green = 0x00;
+    black.blue = 0x00;
+    window_draw_title_bar(old_focused_window, black);
+    graphics_redraw_region(graphics_screen_info(), old_focused_window->root_graphics->starting_x, old_focused_window->root_graphics->starting_y, old_focused_window->root_graphics->width, old_focused_window->root_graphics->height);
+
+
+    // TODO: SETUP A UNFOCUS EVENT
+}
+void window_focus(struct window* window)
+{
+    if (!window)
+    {
+        return;
+    }
+
+    if (focused_window == window)
+    {
+        return;
+    }
+
+    struct window* old_focused_window = focused_window;
+    focused_window = window;
+    struct framebuffer_pixel red = {0};
+    red.red = 0xff;
+    red.green = 0x00;
+    red.blue = 0x00;
+
+    if (old_focused_window && old_focused_window->title_bar_graphics)
+    {
+        window_unfocus(old_focused_window);
+    }
+
+    // Bring the new window to the top
+    window_bring_to_top(window);
+
+
+    // Update the new windows title bar to red
+    if(window->title_bar_graphics)
+    {
+        window_draw_title_bar(window, red);
+    }
+
+    // Force a full redraw of the window
+    graphics_redraw_graphics_to_screen(window->root_graphics, 0, 0, window->root_graphics->width, window->root_graphics->height);
+
+}
 struct window *window_create(struct graphics_info *graphics_info, struct font *font, const char *title, size_t x, size_t y, size_t width, size_t height, int flags, int id)
 {
     int res = 0;
