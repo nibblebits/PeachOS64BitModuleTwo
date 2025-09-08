@@ -100,4 +100,12 @@ struct window
     int flags;
     
 };
+
+int window_system_initialize();
+int window_system_initialize_stage2();
+void window_set_z_index(struct window* window, int zindex);
+void window_unfocus(struct window* old_focused_window);
+void window_focus(struct window* window);
+struct window *window_create(struct graphics_info *graphics_info, struct font *font, const char *title, size_t x, size_t y, size_t width, size_t height, int flags, int id);
+
 #endif

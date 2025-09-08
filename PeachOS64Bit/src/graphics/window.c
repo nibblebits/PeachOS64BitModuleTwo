@@ -115,6 +115,26 @@ void window_unfocus(struct window* old_focused_window)
 
     // TODO: SETUP A UNFOCUS EVENT
 }
+
+void window_bring_to_top(struct window* window)
+{
+    size_t last_index = 0;
+    struct graphics_info* screen_graphics = graphics_screen_info();
+    size_t child_count = vector_count(screen_graphics->children);
+    if (child_count > 0)
+    {
+        struct graphics_info* child_graphics = NULL;
+        size_t child_index = child_count -1;
+        vector_at(screen_graphics->children, child_index, &child_graphics, sizeof(child_graphics));
+        if (child_graphics)
+        {
+            last_index = child_graphics->z_index;
+        }
+    }
+
+    window_set_z_index(window, last_index+1);
+}
+
 void window_focus(struct window* window)
 {
     if (!window)

@@ -13,6 +13,7 @@
 #include "task/process.h"
 #include "graphics/font.h"
 #include "graphics/terminal.h"
+#include "graphics/window.h"
 #include "fs/file.h"
 #include "disk/disk.h"
 #include "disk/gpt.h"
@@ -145,6 +146,17 @@ void kernel_main()
     // Setup the terminal system
     terminal_system_setup();
 
+    // Initialize window system
+    window_system_initialize();
+
+    // in no particular order.
+    // initialize graphics stage two
+    // initialize mouse system
+    // initialize keyboard system
+
+    // Initialize window system stage two
+    window_system_initialize_stage2();
+
     struct font* font = font_get_system_font();
     if (!font)
     {
@@ -193,16 +205,26 @@ void kernel_main()
     // graphics_draw_image(NULL, img, 0, 0);
     // graphics_redraw_all();
 
-    print("Loading program...\n");
-    struct process* process = 0;
-    int res = process_load_switch("@:/blank.elf", &process);
-    if (res != PEACHOS_ALL_OK)
+    struct window* win = window_create(graphics_screen_info(), NULL, "Test Window", 50, 50, 300, 300, 0, 4395327);
+    if (win)
     {
-        panic("Failed to load user program\n");
+        // suppresses warnings.
     }
+    while(1)
+    {
 
-    // Drop to user land
-    task_run_first_ever_task();
+
+    }
+    // print("Loading program...\n");
+    // struct process* process = 0;
+    // int res = process_load_switch("@:/blank.elf", &process);
+    // if (res != PEACHOS_ALL_OK)
+    // {
+    //     panic("Failed to load user program\n");
+    // }
+
+    // // Drop to user land
+    // task_run_first_ever_task();
 
     //  data[0] = 'M';
     //  print(data);
