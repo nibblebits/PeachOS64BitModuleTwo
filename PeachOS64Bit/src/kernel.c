@@ -9,6 +9,7 @@
 #include "keyboard/keyboard.h"
 #include "string/string.h"
 #include "isr80h/isr80h.h"
+#include "io/tsc.h"
 #include "task/task.h"
 #include "task/process.h"
 #include "graphics/font.h"
@@ -205,115 +206,23 @@ void kernel_main()
     // graphics_draw_image(NULL, img, 0, 0);
     // graphics_redraw_all();
 
-    struct window* win = window_create(graphics_screen_info(), NULL, "Test Window", 50, 50, 300, 300, 0, 4395327);
-    if (win)
+    for(size_t i = 0; i < 10; i++)
     {
-        // suppresses warnings.
+        print("Another second\n");
+        udelay(1000000);
     }
-    while(1)
+    print("Loading program...\n");
+    struct process* process = 0;
+    int res = process_load_switch("@:/blank.elf", &process);
+    if (res != PEACHOS_ALL_OK)
     {
-
-
+        panic("Failed to load user program\n");
     }
-    // print("Loading program...\n");
-    // struct process* process = 0;
-    // int res = process_load_switch("@:/blank.elf", &process);
-    // if (res != PEACHOS_ALL_OK)
-    // {
-    //     panic("Failed to load user program\n");
-    // }
 
-    // // Drop to user land
-    // task_run_first_ever_task();
+    // Drop to user land
+    task_run_first_ever_task();
 
-    //  data[0] = 'M';
-    //  print(data);
-
-    //  struct heap* kernel_heap = kheap_get();
-    //  size_t total = heap_total_size(kernel_heap);
-    //  size_t used = heap_total_used(kernel_heap);
-    //  size_t avail = heap_total_available(kernel_heap);
-
-    //  print("Total heap size: ");
-    //  print(itoa(total));
-    //  print("\n");
-
-    //  print("Total heap used: ");
-    //  print(itoa(used));
-    //  print("\n");
-
-    //  print("Total heap available: ");
-    //  print(itoa(avail));
-    //  print("\n");
-
-    // OLD CODE BELOW
-    // ----------------------------------
-
-    // memset(gdt_real, 0x00, sizeof(gdt_real));
-    // gdt_structured_to_gdt(gdt_real, gdt_structured, PEACHOS_TOTAL_GDT_SEGMENTS);
-
-    // // Load the gdt
-    // gdt_load(gdt_real, sizeof(gdt_real)-1);
-
-    // // Initialize the heap
-    // kheap_init();
-
-    // // Initialize filesystems
-    // fs_init();
-
-    // // Search and initialize the disks
-    // disk_search_and_init();
-
-    // // Initialize the interrupt descriptor table
-    // idt_init();
-
-    // // Setup the TSS
-    // memset(&tss, 0x00, sizeof(tss));
-    // tss.esp0 = 0x600000;
-    // tss.ss0 = KERNEL_DATA_SELECTOR;
-
-    // // Load the TSS
-    // tss_load(0x28);
-
-    // // Setup paging
-    // kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
-
-    // // Switch to kernel paging chunk
-    // paging_switch(kernel_chunk);
-
-    // // Enable paging
-    // enable_paging();
-
-    // // Register the kernel commands
-    // isr80h_register_commands();
-
-    // // Initialize all the system keyboards
-    // keyboard_init();
-
-    // struct process* process = 0;
-    // int res = process_load_switch("0:/blank.elf", &process);
-    // if (res != PEACHOS_ALL_OK)
-    // {
-    //     panic("Failed to load blank.elf\n");
-    // }
-
-    // struct command_argument argument;
-    // strcpy(argument.argument, "Testing!");
-    // argument.next = 0x00;
-
-    // process_inject_arguments(process, &argument);
-
-    // res = process_load_switch("0:/blank.elf", &process);
-    // if (res != PEACHOS_ALL_OK)
-    // {
-    //     panic("Failed to load blank.elf\n");
-    // }
-
-    // strcpy(argument.argument, "Abc!");
-    // argument.next = 0x00;
-    // process_inject_arguments(process, &argument);
-
-    // task_run_first_ever_task();
+   
 
     while (1)
     {

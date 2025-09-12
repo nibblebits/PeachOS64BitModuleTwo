@@ -52,7 +52,7 @@ TIME_MILISECONDS tsc_miliseconds()
 
 TIME_SECONDS tsc_seconds()
 {
-    TIME_MILISECONDS miliseconds = tsc_miliseconds;
+    TIME_MILISECONDS miliseconds = tsc_miliseconds();
     return miliseconds / 1000;
 }
 
