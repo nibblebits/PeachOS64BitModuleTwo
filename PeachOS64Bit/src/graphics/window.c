@@ -187,7 +187,7 @@ void window_event_handler_register(struct window* window, WINDOW_EVENT_HANDLER h
 void window_drop_event_handlers(struct window* window)
 {
     WINDOW_EVENT_HANDLER handler = NULL;
-    vecotr_at(window->event_handlers.handlers, 0, &handler, sizeof(handler));
+    vector_at(window->event_handlers.handlers, 0, &handler, sizeof(handler));
     while(handler)
     {
         // This function will pop from the handler vector
