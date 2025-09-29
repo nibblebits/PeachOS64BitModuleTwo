@@ -13,5 +13,6 @@
 #define EINFORMAT 9
 #define EOUTOFRANGE 10
 #define ENOTFOUND 11
+#define ETIMEOUT 12
 
 #endif
