@@ -107,6 +107,9 @@ void graphics_paste_pixels_to_pixels(
     uint32_t dst_y,
     int flags
 );
+
+void graphics_info_recalculate(struct graphics_info* graphics_info);
+
 int graphics_pixel_get(struct graphics_info* graphics_info, uint32_t x, uint32_t y, struct framebuffer_pixel* pixel_out);
 
 void graphics_info_free(struct graphics_info* graphics_in);

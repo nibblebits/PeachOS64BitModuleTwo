@@ -319,6 +319,30 @@ void graphics_draw_rect(
     }
 }
 
+void graphics_info_recalculate(struct graphics_info* graphics_info)
+{
+    if (graphics_info->parent)
+    {
+        graphics_info->starting_x = graphics_info->relative_x + graphics_info->parent->starting_x;
+        graphics_info->starting_y = graphics_info->relative_y + graphics_info->parent->starting_y;
+    }
+
+    if (graphics_info->children)
+    {
+        size_t total_children = vector_count(graphics_info->children);
+        for(size_t i = 0; i < total_children; i++)
+        {
+            struct graphics_info* child_graphics_info = NULL;
+            int res = vector_at(graphics_info->children, i, &child_graphics_info, sizeof(struct graphics_info*));
+            if (res < 0)
+            {
+                break;
+            }
+
+            graphics_info_recalculate(child_graphics_info);
+        }
+    }
+}
 void graphics_redraw_graphics_to_screen(struct graphics_info* relative_graphics, uint32_t rel_x, uint32_t rel_y, uint32_t width, uint32_t height)
 {
     uint32_t abs_screen_x = relative_graphics->starting_x+rel_x;
