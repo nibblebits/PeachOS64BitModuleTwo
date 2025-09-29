@@ -206,11 +206,13 @@ void kernel_main()
     // graphics_draw_image(NULL, img, 0, 0);
     // graphics_redraw_all();
 
-    for(size_t i = 0; i < 10; i++)
-    {
-        print("Another second\n");
-        udelay(1000000);
-    }
+   
+   struct window* win = window_create(graphics_screen_info(), NULL, "Test Window", 100, 100, 200, 200, 0, -1);
+   if (!win)
+   {
+     print("WIndow creation problem\n");
+   }
+   while(1) {}
     print("Loading program...\n");
     struct process* process = 0;
     int res = process_load_switch("@:/blank.elf", &process);
