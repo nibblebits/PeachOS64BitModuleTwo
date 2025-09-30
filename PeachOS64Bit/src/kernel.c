@@ -220,6 +220,8 @@ void kernel_main()
      print("WIndow creation problem\n");
    }
 
+   enable_interrupts();
+   
    while(1) {}
     print("Loading program...\n");
     struct process* process = 0;
