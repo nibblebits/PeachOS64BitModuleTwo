@@ -74,10 +74,10 @@ void idt_handle_exception()
 void idt_clock()
 {
     outb(0x20, 0x20);
-    //changed
-    // print("test\n");
-    // // Switch to the next task
-    // task_next();
+    print("test\n");
+    
+    // Switch to the next task
+    task_next();
 }
 
 void idt_init()
