@@ -29,3 +29,5 @@ struct ps2_mouse
 };
 
 struct mouse* ps2_mouse_get();
+
+#endif

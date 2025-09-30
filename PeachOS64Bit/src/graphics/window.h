@@ -110,6 +110,6 @@ struct window *window_create(struct graphics_info *graphics_info, struct font *f
 void window_event_handler_register(struct window* window, WINDOW_EVENT_HANDLER handler);
 void window_event_handler_unregister(struct window* window, WINDOW_EVENT_HANDLER handler);
 void window_redraw(struct window* window);
-
+struct terminal* window_terminal(struct window* window);
 int window_position_set(struct window* window, size_t new_x, size_t new_y);
 #endif
