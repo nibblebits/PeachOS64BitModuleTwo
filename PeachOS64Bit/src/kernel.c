@@ -7,6 +7,7 @@
 #include "memory/paging/paging.h"
 #include "memory/memory.h"
 #include "keyboard/keyboard.h"
+#include "mouse/mouse.h"
 #include "string/string.h"
 #include "isr80h/isr80h.h"
 #include "io/tsc.h"
@@ -147,8 +148,14 @@ void kernel_main()
     // Setup the terminal system
     terminal_system_setup();
 
+    // Initialize mouse system
+    mouse_system_init();
+
     // Initialize window system
     window_system_initialize();
+
+    // Load the static mouse drivers.
+    mouse_system_load_static_drivers();
 
     // in no particular order.
     // initialize graphics stage two
@@ -212,6 +219,7 @@ void kernel_main()
    {
      print("WIndow creation problem\n");
    }
+
    while(1) {}
     print("Loading program...\n");
     struct process* process = 0;

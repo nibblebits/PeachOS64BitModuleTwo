@@ -36,7 +36,7 @@ void interrupt_handler(int interrupt, struct interrupt_frame* frame)
     }
 
     task_page();
-    outb(0x20, 0x20);
+    outb(0x20, 0x20); 
 }
 
 void idt_zero()
@@ -74,9 +74,10 @@ void idt_handle_exception()
 void idt_clock()
 {
     outb(0x20, 0x20);
-    print("test\n");
-    // Switch to the next task
-    task_next();
+    //changed
+    // print("test\n");
+    // // Switch to the next task
+    // task_next();
 }
 
 void idt_init()
