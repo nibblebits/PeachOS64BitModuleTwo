@@ -26,6 +26,16 @@ void no_interrupt_handler()
     outb(0x20, 0x20);
 }
 
+// PIC command ports used for sending End Of Interrupt (EOI) commands.
+#define PIC_MASTER_COMMAND_PORT 0x20
+#define PIC_SLAVE_COMMAND_PORT 0xA0
+
+// After remapping in kernel.asm the master handles IRQs [0x20-0x27] and the
+// slave handles IRQs [0x28-0x2F]. Anything below 0x20 is a CPU exception.
+#define PIC_MASTER_IRQ_OFFSET 0x20
+#define PIC_SLAVE_IRQ_OFFSET 0x28
+#define PIC_IRQS_PER_CONTROLLER 8
+
 void interrupt_handler(int interrupt, struct interrupt_frame* frame)
 {
     kernel_page();
@@ -36,7 +46,17 @@ void interrupt_handler(int interrupt, struct interrupt_frame* frame)
     }
 
     task_page();
-    outb(0x20, 0x20); 
+
+    if (interrupt >= PIC_MASTER_IRQ_OFFSET)
+    {
+        if (interrupt >= PIC_SLAVE_IRQ_OFFSET &&
+            interrupt < PIC_SLAVE_IRQ_OFFSET + PIC_IRQS_PER_CONTROLLER)
+        {
+            outb(PIC_SLAVE_COMMAND_PORT, 0x20);
+        }
+
+        outb(PIC_MASTER_COMMAND_PORT, 0x20);
+    }
 }
 
 void idt_zero()

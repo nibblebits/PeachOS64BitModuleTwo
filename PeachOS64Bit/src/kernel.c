@@ -209,6 +209,8 @@ void kernel_main()
     // Initialize the keyboard
     keyboard_init();
 
+    enable_interrupts();
+
     // struct image* img = graphics_image_load("@:/bkground.bmp");
     // graphics_draw_image(NULL, img, 0, 0);
     // graphics_redraw_all();
