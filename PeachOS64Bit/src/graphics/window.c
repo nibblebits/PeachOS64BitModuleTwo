@@ -279,6 +279,16 @@ void window_event_push(struct window* window, struct window_event* event)
         }
     }
 }
+
+void window_click(struct window* window, int rel_x, int rel_y, MOUSE_CLICK_TYPE type)
+{
+    struct window_event event = {0};
+    event.type = WINDOW_EVENT_TYPE_MOUSE_CLICK;
+    event.data.click.x = rel_x;
+    event.data.click.y = rel_y;
+    window_event_push(window, &event);
+}
+
 void window_close(struct window* window)
 {
     struct window_event event = {0};
