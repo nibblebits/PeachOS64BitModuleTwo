@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "lib/vector/vector.h"
 #include "graphics/image/image.h"
+#include "mouse/mouse.h"
 
 
 
