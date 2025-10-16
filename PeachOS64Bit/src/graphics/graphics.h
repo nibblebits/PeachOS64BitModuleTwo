@@ -127,4 +127,14 @@ void graphics_redraw_graphics_to_screen(struct graphics_info* relative_graphics,
 struct graphics_info* graphics_screen_info();
 void graphics_setup(struct graphics_info* main_graphics_info);
 void graphics_redraw_all();
+
+struct graphics_info* graphics_get_at_screen_position(size_t x, size_t y, struct graphics_info* ignored, bool top_first);
+struct graphics_info* graphics_get_child_at_position(struct graphics_info* graphics,
+                                                    size_t x, size_t y,
+                                                    struct graphics_info* ignored,
+                                                   bool top_first);
+
+void graphics_click_handler_set(struct graphics_info* graphics, GRAPHICS_MOUSE_CLICK_FUNCTION click_function);
+void graphics_move_handler_set(struct graphics_info* graphics, GRAPHICS_MOUSE_MOVE_FUNCTION, move_function);
+
 #endif
