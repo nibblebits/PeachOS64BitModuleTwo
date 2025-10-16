@@ -137,4 +137,5 @@ struct graphics_info* graphics_get_child_at_position(struct graphics_info* graph
 void graphics_click_handler_set(struct graphics_info* graphics, GRAPHICS_MOUSE_CLICK_FUNCTION click_function);
 void graphics_move_handler_set(struct graphics_info* graphics, GRAPHICS_MOUSE_MOVE_FUNCTION, move_function);
 
+
 #endif
