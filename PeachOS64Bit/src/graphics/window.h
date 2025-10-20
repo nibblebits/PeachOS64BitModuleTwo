@@ -113,5 +113,10 @@ void window_redraw(struct window* window);
 struct terminal* window_terminal(struct window* window);
 int window_position_set(struct window* window, size_t new_x, size_t new_y);
 void window_click(struct window* window, int rel_x, int rel_y, MOUSE_CLICK_TYPE type);
-
+bool window_owns_graphics(struct window* win, struct graphics_info* graphics);
+struct window* window_focused();
+struct window* window_get_from_graphics(struct graphics_info* graphics);
+void window_redraw_region(struct window* window, int x, int y, int width, int height);
+void window_redraw_body_region(struct window* window, int x, int y, int width, int height);
+void window_title_set(struct window* window, const char* title);
 #endif

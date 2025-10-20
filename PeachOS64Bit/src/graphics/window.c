@@ -25,6 +25,8 @@ struct window *window_moving = NULL;
 struct window *focused_window = NULL;
 
 int window_autoincrement_id_current = 100000;
+size_t window_get_largest_zindex();
+int window_recalculate_zindexes();
 
 int window_system_initialize()
 {
@@ -54,6 +56,24 @@ out:
 void window_screen_mouse_move_handler(struct mouse* mouse, int moved_to_x, int moved_to_y)
 {
     // TODO.
+}
+
+struct window* window_get_from_graphics(struct graphics_info* graphics)
+{
+    struct window* window = NULL;
+    size_t total_windows = vector_count(windows_vector);
+    for(size_t i = 0; i < total_windows; i++)
+    {
+        struct window* win = NULL;
+        vector_at(windows_vector, i, &win, sizeof(win));
+        if (win && window_owns_graphics(win, graphics))
+        {
+            window = win;
+            break;
+        }
+    }
+
+    return window;
 }
 
 struct window* window_get_at_position(size_t abs_x, size_t abs_y, struct window* ignore_window)
@@ -395,6 +415,77 @@ out:
 void window_redraw(struct window* window)
 {
     graphics_redraw(window->root_graphics);
+}
+
+void window_redraw_body_region(struct window* window, int x, int y, int width, int height)
+{
+    graphics_redraw_region(window->graphics, x, y, width, height);
+}
+
+void window_redraw_region(struct window* window, int x, int y, int width, int height)
+{
+    graphics_redraw_region(window->root_graphics, x, y, width, height);
+}
+
+void window_title_set(struct window* window, const char* title)
+{
+    strncpy(window->title, title, sizeof(window->title));
+    // Black
+    struct framebuffer_pixel title_bar_bg_color = {0};
+
+    window_draw_title_bar(window, title_bar_bg_color);
+    window_redraw(window);
+}
+
+size_t window_get_largest_zindex()
+{
+    size_t z_index = 0;
+    size_t total_windows = vector_count(windows_vector);
+    if (total_windows > 0)
+    {
+        struct window* win = NULL;
+        vector_at(windows_vector, 0, &win, sizeof(win));
+        if (win)
+        {
+            z_index = win->zindex;
+        }
+    }
+
+    return z_index;
+}
+
+int window_recalculate_zindexes()
+{
+    size_t total_windows = vector_count(windows_vector);
+    size_t last_zindex = 0;
+    for(size_t i = 0; i < total_windows; i++)
+    {
+        struct window* child_window = NULL;
+        vector_at(windows_vector, i, &child_window, sizeof(child_window));
+        if(child_window)
+        {
+            size_t z_index = vector_count(child_window->root_graphics->children) + i + 1;
+            graphics_set_z_index(child_window->root_graphics, z_index);
+            last_zindex = z_index;
+        }
+    }
+
+    return last_zindex;
+}
+
+struct window* window_focused()
+{
+    return focused_window;
+}
+
+
+
+bool window_owns_graphics(struct window* win, struct graphics_info* graphics)
+{
+    if (graphics == win->root_graphics)
+        return true;
+    
+    return graphics_has_ancestor(graphics, win->root_graphics);
 }
 
 
