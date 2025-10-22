@@ -178,8 +178,9 @@ void window_unfocus(struct window* old_focused_window)
     window_draw_title_bar(old_focused_window, black);
     graphics_redraw_region(graphics_screen_info(), old_focused_window->root_graphics->starting_x, old_focused_window->root_graphics->starting_y, old_focused_window->root_graphics->width, old_focused_window->root_graphics->height);
 
-
-    // TODO: SETUP A UNFOCUS EVENT
+    struct window_event event = {0};
+    event.type = WINDOW_EVENT_TYPE_LOST_FOCUS;
+    window_event_push(old_focused_window, &event);
 }
 
 void window_bring_to_top(struct window* window)
@@ -238,6 +239,9 @@ void window_focus(struct window* window)
     // Force a full redraw of the window
     graphics_redraw_graphics_to_screen(window->root_graphics, 0, 0, window->root_graphics->width, window->root_graphics->height);
 
+    struct window_event event = {0};
+    event.type = WINDOW_EVENT_TYPE_FOCUS;
+    window_event_push(window, &event);
 }
 
 void window_event_handler_unregister(struct window* window, WINDOW_EVENT_HANDLER handler)
