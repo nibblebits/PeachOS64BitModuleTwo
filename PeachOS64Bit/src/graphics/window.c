@@ -492,7 +492,42 @@ bool window_owns_graphics(struct window* win, struct graphics_info* graphics)
     return graphics_has_ancestor(graphics, win->root_graphics);
 }
 
-
+void window_title_bar_clicked(struct graphics_info* title_graphics, size_t rel_x, size_t rel_y, MOUSE_CLICK_TYPE type)
+{
+    struct window* win = window_get_from_graphics(title_graphics);
+    if (win)
+    {
+        size_t close_btn_x = win->title_bar_components.close_btn.x;
+        size_t close_btn_y = win->title_bar_components.close_btn.y;
+        size_t close_btn_width = win->title_bar_components.close_btn.width;
+        size_t close_btn_height = win->title_bar_components.close_btn.height;
+        size_t close_btn_ending_x = close_btn_x + close_btn_width;
+        size_t close_btn_ending_y = close_btn_y + close_btn_height;
+        if (rel_x >= close_btn_x &&
+            rel_x < close_btn_ending_x &&
+            rel_y >= close_btn_y &&
+            rel_y < close_btn_ending_y)
+        {
+            window_close(win);
+            win = NULL;
+        }
+        else
+        {
+            // If they click the window they are already moving
+            // toggle it as no longer moving.
+            if (window_moving == win)
+            {
+                window_moving = NULL;
+            }
+            else
+            {
+                // Ok this was not the currently moving window
+                // therefore set the new moving window to the one we clicked.
+                window_moving = win;
+            }
+        }
+    }
+}
 struct window *window_create(struct graphics_info *graphics_info, struct font *font, const char *title, size_t x, size_t y, size_t width, size_t height, int flags, int id)
 {
     int res = 0;
@@ -583,6 +618,7 @@ struct window *window_create(struct graphics_info *graphics_info, struct font *f
             goto out;
         }
         // click handler
+        graphics_click_handler_set(title_bar_graphics_info, window_title_bar_clicked);
         // move handler
         window->title_bar_graphics = title_bar_graphics_info;
 
