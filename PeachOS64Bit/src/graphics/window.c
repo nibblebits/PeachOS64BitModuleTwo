@@ -55,7 +55,24 @@ out:
 
 void window_screen_mouse_move_handler(struct mouse* mouse, int moved_to_x, int moved_to_y)
 {
-    // TODO.
+    if (window_moving)
+    {
+        if (window_moving->title_bar_graphics)
+        {
+            size_t abs_x = moved_to_x - (window_moving->title_bar_graphics->width / 2);
+            size_t abs_y = moved_to_y - (window_moving->title_bar_graphics->height / 2);
+            window_position_set(window_moving, abs_x, abs_y);
+        }
+    }
+
+    size_t rel_x = moved_to_x - window_moving->root_graphics->starting_x;
+    size_t rel_y = moved_to_y - window_moving->root_graphics->starting_y;
+
+    struct window_event event = {0};
+    event.type = WINDOW_EVENT_TYPE_MOUSE_MOVE;
+    event.data.move.x = rel_x;
+    event.data.move.y = rel_y;
+    window_event_push(window_moving, &event);
 }
 
 struct window* window_get_from_graphics(struct graphics_info* graphics)
@@ -492,6 +509,11 @@ bool window_owns_graphics(struct window* win, struct graphics_info* graphics)
     return graphics_has_ancestor(graphics, win->root_graphics);
 }
 
+void window_title_bar_mouse_moved(struct graphics_info* title_graphics, size_t rel_x, size_t rel_y, size_t abs_x, size_t abs_y)
+{
+    // do nothing.
+}
+
 void window_title_bar_clicked(struct graphics_info* title_graphics, size_t rel_x, size_t rel_y, MOUSE_CLICK_TYPE type)
 {
     struct window* win = window_get_from_graphics(title_graphics);
@@ -620,6 +642,8 @@ struct window *window_create(struct graphics_info *graphics_info, struct font *f
         // click handler
         graphics_click_handler_set(title_bar_graphics_info, window_title_bar_clicked);
         // move handler
+        graphics_move_handler_set(title_bar_graphics_info, window_title_bar_mouse_moved);
+
         window->title_bar_graphics = title_bar_graphics_info;
 
         border_left_graphics_info = 
