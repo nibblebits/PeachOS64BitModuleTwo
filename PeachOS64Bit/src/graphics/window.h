@@ -119,4 +119,6 @@ struct window* window_get_from_graphics(struct graphics_info* graphics);
 void window_redraw_region(struct window* window, int x, int y, int width, int height);
 void window_redraw_body_region(struct window* window, int x, int y, int width, int height);
 void window_title_set(struct window* window, const char* title);
+void window_event_push(struct window *window, struct window_event *event);
+
 #endif

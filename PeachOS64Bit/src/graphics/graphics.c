@@ -510,10 +510,7 @@ struct graphics_info *graphics_get_at_screen_position(size_t x, size_t y, struct
     return graphics_get_child_at_position(graphics_screen_info(), x, y, ignored, top_first);
 }
 
-void graphics_mouse_click_handler(struct mouse *mouse, int clicked_x, int clicked_y, MOUSE_CLICK_TYPE type)
-{
-    struct graphics_info *graphics = graphics_get_at_screen_position(clicked_x, clicked_y, mouse->graphic.window->root_graphics, true);
-}
+
 void graphics_redraw(struct graphics_info *g)
 {
     if (!g)
@@ -817,6 +814,21 @@ void graphics_setup(struct graphics_info *main_graphics_info)
 
     // Redraw all the graphics
     graphics_redraw_all();
+}
+bool graphics_has_ancestor(struct graphics_info* graphics_child, struct graphics_info* graphics_ancestor)
+{
+    struct graphics_info* parent = graphics_child->parent;
+    while(parent)
+    {
+        if (parent == graphics_ancestor)
+        {
+            return true;
+        }
+
+        parent = parent->parent;
+    }
+
+    return false;
 }
 
 void grpahics_setup_stage_two(struct graphics_info *main_graphics_info)
