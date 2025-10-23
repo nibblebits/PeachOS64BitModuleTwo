@@ -15,7 +15,7 @@ enum
     GRAPHICS_FLAG_CLONED_FRAMEBUFFER = 0b00000010,
     GRAPHICS_FLAG_CLONED_CHILDREN = 0b00000100,
     GRAPHICS_FLAG_DO_NOT_COPY_PIXELS = 0b00001000,
-    GRAPHICS_FLAG_DO_NOT_OVERWRITE_TRASPARENT_PIXELS = 0b00010000
+    GRAPHICS_FLAG_DO_NOT_OVERWRITE_TRANSPARENT_PIXELS = 0b00010000
 };
 
 struct graphics_info;
@@ -137,6 +137,6 @@ struct graphics_info* graphics_get_child_at_position(struct graphics_info* graph
 void graphics_click_handler_set(struct graphics_info* graphics, GRAPHICS_MOUSE_CLICK_FUNCTION click_function);
 void graphics_move_handler_set(struct graphics_info* graphics, GRAPHICS_MOUSE_MOVE_FUNCTION move_function);
 bool graphics_has_ancestor(struct graphics_info* graphics_child, struct graphics_info* graphics_ancestor);
-
+void graphics_setup_stage_two(struct graphics_info *main_graphics_info);
 
 #endif

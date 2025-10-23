@@ -272,7 +272,7 @@ void graphics_redraw_region(struct graphics_info *g, uint32_t local_x, uint32_t 
 
     if (local_x + width > g->width)
     {
-        return;
+        width = g->width - local_x;
     }
     if (local_y + height > g->height)
     {
@@ -314,7 +314,7 @@ void graphics_redraw_region(struct graphics_info *g, uint32_t local_x, uint32_t 
         // Compute the intersection between the childs rectangle and the draw region
         uint32_t intersect_left = MAX(child_abs_left, region_abs_left);
         uint32_t intersect_top = MAX(child_abs_top, region_abs_top);
-        uint32_t intersect_right = MAX(child_abs_right, region_abs_right);
+        uint32_t intersect_right = MIN(child_abs_right, region_abs_right);
         uint32_t intersect_bottom = MIN(child_abs_bottom, region_abs_bottom);
 
         if (intersect_right > intersect_left && intersect_bottom > intersect_top)
@@ -337,7 +337,7 @@ void graphics_ignore_color(struct graphics_info *graphics_info, struct framebuff
 
 void graphics_transparency_key_set(struct graphics_info *graphics_info, struct framebuffer_pixel pixel_color)
 {
-    graphics_info->ignore_color = pixel_color;
+    graphics_info->transparency_key = pixel_color;
 }
 
 void graphics_transparency_key_remove(struct graphics_info *graphics_info)
@@ -482,7 +482,7 @@ struct graphics_info *graphics_get_child_at_position(struct graphics_info *graph
             if (graphics_is_in_ignored_branch(child, ignored))
                 continue;
 
-            if (x > child->starting_x && x < child->starting_x + child->width &&
+            if (x >= child->starting_x && x < child->starting_x + child->width &&
                 y >= child->starting_y && y < child->starting_y + child->height)
             {
                 result = graphics_get_child_at_position(child, x, y, ignored, top_first);
@@ -496,7 +496,7 @@ struct graphics_info *graphics_get_child_at_position(struct graphics_info *graph
 
     // If no child qualifies then if the current element contains the point
     // return it.
-    if (x >= graphics->starting_x && x < graphics->starting_y + graphics->width &&
+    if (x >= graphics->starting_x && x < graphics->starting_x + graphics->width &&
         y >= graphics->starting_y && y < graphics->starting_y + graphics->height)
     {
         return graphics;
@@ -658,7 +658,7 @@ void graphics_paste_pixels_to_pixels(
 
             if (dx < graphics_info_out->width && dy < graphics_info_out->height)
             {
-                if (flags & GRAPHICS_FLAG_DO_NOT_OVERWRITE_TRASPARENT_PIXELS)
+                if (flags & GRAPHICS_FLAG_DO_NOT_OVERWRITE_TRANSPARENT_PIXELS)
                 {
                     if (has_transparency_key)
                     {
@@ -738,7 +738,7 @@ struct graphics_info *graphics_info_create_relative(struct graphics_info *source
 
     if (!(flags & GRAPHICS_FLAG_DO_NOT_COPY_PIXELS))
     {
-        graphics_paste_pixels_to_pixels(source_graphics, new_graphics, x, y, width, height, 0, 0, GRAPHICS_FLAG_DO_NOT_OVERWRITE_TRASPARENT_PIXELS);
+        graphics_paste_pixels_to_pixels(source_graphics, new_graphics, x, y, width, height, 0, 0, GRAPHICS_FLAG_DO_NOT_OVERWRITE_TRANSPARENT_PIXELS);
     }
 
     // We want to remove the framebuffer on delete flag
@@ -831,7 +831,7 @@ bool graphics_has_ancestor(struct graphics_info* graphics_child, struct graphics
     return false;
 }
 
-void grpahics_setup_stage_two(struct graphics_info *main_graphics_info)
+void graphics_setup_stage_two(struct graphics_info *main_graphics_info)
 {
     mouse_register_click_handler(NULL, graphics_mouse_click_handler);
     mouse_register_move_handler(NULL, graphics_mouse_move_handler);
