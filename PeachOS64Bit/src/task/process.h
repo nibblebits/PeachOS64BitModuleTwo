@@ -82,6 +82,9 @@ struct process
     // The memory (malloc) allocations of the process
     struct vector* allocations;
     
+    // a vector of struct userland_ptr*
+    struct vector* kernel_userland_ptrs_vector;
+
     // File handle vector,
     // vector of struct process_file_handle*
     struct vector* file_handles;
