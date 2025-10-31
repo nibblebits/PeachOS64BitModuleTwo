@@ -11,6 +11,8 @@
 #define PROCESS_FILETYPE_BINARY 1
 
 typedef unsigned char PROCESS_FILETYPE;
+struct window;
+struct graphics_info;
 
 struct process_allocation
 {
@@ -60,6 +62,19 @@ struct process_file_handle
 
     // Mode, "w", "r", "w+"
     char mode[2];
+};
+
+struct process_userspace_window
+{
+    char title[WINDOW_MAX_TITLE];
+    int width;
+    int height;
+}; 
+
+struct process_window
+{
+    struct process_userspace_window* user_win;
+    struct window* kernel_win;
 };
 
 struct process
@@ -112,6 +127,8 @@ struct process
         int head;
     } keyboard;
 
+    // a vector of struct process_window*
+    struct vector* windows;
 
     // The arguments of the process.
     struct process_arguments arguments;
@@ -139,4 +156,9 @@ int process_fread(struct process* process, void* virt_ptr, uint64_t size, uint64
 int process_fseek(struct process* process, int fd, int offset, FILE_SEEK_MODE whence);
 int process_fstat(struct process* process, int fd, struct file_stat* virt_filestat_addr);
 
+struct process_window* process_window_create(struct process* process, char* title, int width, int height, int flags, int id);
+bool process_owns_kernel_window(struct process* process, struct window* kernel_window);
+struct process* process_get_from_kernel_window(struct window* window);
+struct process_window* process_window_get_from_user_window(struct process* process, struct process_userspace_window* user_win);
+void process_close_windows(struct process* process);
 #endif

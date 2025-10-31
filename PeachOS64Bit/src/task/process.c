@@ -9,6 +9,8 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "loader/formats/elfloader.h"
+#include "graphics/graphics.h"
+#include "graphics/window.h"
 #include "kernel.h"
 #include <stdbool.h>
 
@@ -38,6 +40,7 @@ static void process_init(struct process *process)
     process->allocations = vector_new(sizeof(struct process_allocation), 10, 0);
     process->file_handles = vector_new(sizeof(struct process_file_handle *), 4, 0);
     process->kernel_userland_ptrs_vector = vector_new(sizeof(struct userland_ptr*), 4, 0);
+    process->windows = vector_new(sizeof(struct process_window*), 4, 0);
 }
 
 struct process *process_current()
@@ -45,6 +48,127 @@ struct process *process_current()
     return current_process;
 }
 
+bool process_owns_kernel_window(struct process* process, struct window* kernel_window)
+{
+    size_t total_windows = vector_count(process->windows);
+    for(size_t i = 0; i < total_windows; i++)
+    {
+        struct process_window* win = NULL;
+        vector_at(process->windows, i, &win, sizeof(win));
+        if (win && win->kernel_win == kernel_window)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+struct process* process_get_from_kernel_window(struct window* window)
+{
+    size_t total_processes = vector_count(process_vector);
+    for(size_t i = 0; i < total_processes; i++)
+    {
+        struct process* process = NULL;
+        vector_at(process_vector, i, &process, sizeof(process));
+        if (process)
+        {
+            if (process_owns_kernel_window(process, window))
+            {
+                return process;
+            }
+
+        }
+    }
+    return NULL;
+}
+
+struct process_window* process_window_get_from_user_window(struct process* process, struct process_userspace_window* user_win)
+{
+    size_t total_windows = vector_count(process->windows);
+    for(size_t i = 0; i < total_windows; i++)
+    {
+        struct process_window* win = NULL;
+        vector_at(process->windows, i, &win, sizeof(win));
+        if (win && win->user_win == user_win)
+        {
+            return win;
+        }
+    }
+
+    return NULL;
+}
+
+void process_close_windows(struct process* process)
+{
+    size_t total_windows = vector_count(process->windows);
+    for(size_t i = 0; i < total_windows; i++)
+    {
+        struct process_window* window = NULL;
+        vector_at(process->windows, i, &window, sizeof(window));
+        if (window && window->kernel_win)
+        {
+            window_close(window->kernel_win);
+        }
+    }
+}
+
+
+struct process_window* process_window_create(struct process* process, char* title, int width, int height, int flags, int id)
+{
+    int res = 0;
+    struct process_window* proc_win = kzalloc(sizeof(struct process_window));
+    if (!proc_win)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
+
+    struct graphics_info* screen_graphics = graphics_screen_info();
+    size_t abs_x = (screen_graphics->width / 2) - (width / 2);
+    size_t abs_y = (screen_graphics->height / 2) - (height / 2);
+    proc_win->kernel_win = window_create(screen_graphics, NULL, title, abs_x, abs_y, width, height, flags, id);
+    if (!proc_win->kernel_win)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
+
+    proc_win->user_win = process_malloc(process, sizeof(struct process_userspace_window));
+    if (!proc_win->user_win)
+    {
+        res = -ENOMEM;
+        goto out;
+    }
+
+    proc_win->user_win->width = width;
+    proc_win->user_win->height = height;
+    strncpy(proc_win->user_win->title, title, sizeof(proc_win->user_win->title));
+
+    // Register the window event handler
+    // TODO: 
+
+    vector_push(process->windows, &proc_win);
+out:
+    if (res < 0)
+    {
+        if (proc_win->kernel_win)
+        {
+            window_close(proc_win->kernel_win);
+            proc_win->kernel_win = NULL;
+        }
+
+        if (proc_win->user_win)
+        {
+            process_free(process, proc_win->user_win);
+            proc_win->user_win = NULL;
+        }
+        kfree(proc_win);
+        proc_win = NULL;
+    }
+
+    return proc_win;
+}
 struct process *process_get(int process_id)
 {
     int res = 0;
@@ -367,9 +491,15 @@ static void process_unlink(struct process *process)
     }
 }
 
+void process_window_closed(struct process* process, struct process_window* proc_win)
+{
+    // TODO: Clean up and close the wnidow
+}
 int process_free_process(struct process *process)
 {
     int res = 0;
+    
+    process_close_windows(process);
     process_terminate_allocations(process);
     process_free_program_data(process);
     process_close_file_handles(process);
