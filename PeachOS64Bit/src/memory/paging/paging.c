@@ -336,7 +336,7 @@ struct paging_desc_entry* paging_get(struct paging_desc* desc, void* virt)
 
     // 2) PDPT Entry
     struct paging_desc_entry* pdpt_entry = &pdpt_entries[pdpt_index];
-    if (paging_null_entry(pdpt_entries))
+    if (paging_null_entry(pdpt_entry))
     {
         return NULL;
     }
