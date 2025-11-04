@@ -64,6 +64,11 @@ out:
 
 struct task *task_get_next()
 {
+    if (!current_task)
+    {
+        return task_head;
+    }
+
     if (!current_task->next)
     {
         return task_head;

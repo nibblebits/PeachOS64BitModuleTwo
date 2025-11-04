@@ -32,11 +32,17 @@ void interrupt_handler(int interrupt, struct interrupt_frame* frame)
     kernel_page();
     if (interrupt_callbacks[interrupt] != 0)
     {
-        //task_current_save_state(frame);
+        if (task_current())
+        {
+            task_current_save_state(frame);
+        }
         interrupt_callbacks[interrupt](frame);
     }
 
-    //task_page();
+    if (task_current())
+    {
+        task_page();
+    }
     outb(0x20, 0x20); 
     outb(0xA0, 0x20);
 }
@@ -77,7 +83,12 @@ void idt_clock()
 {
     outb(0x20, 0x20);
     print("test\n");
-    
+
+    if (!task_current())
+    {
+        return;
+    }
+
     // Switch to the next task
     task_next();
 }
@@ -103,7 +114,7 @@ void idt_init()
     }
     
 
-    idt_register_interrupt_callback(0x20, idt_clock);
+   // idt_register_interrupt_callback(0x20, idt_clock);
 
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);

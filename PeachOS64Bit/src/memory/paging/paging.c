@@ -329,14 +329,9 @@ struct paging_desc_entry* paging_get(struct paging_desc* desc, void* virt)
     struct paging_desc_entry* pdpt_entries 
         = (struct paging_desc_entry*)(((uint64_t)(pml4_entry->address)) << 12);
     
-    if (paging_null_entry(pdpt_entries))
-    {
-        return NULL;
-    }
-
     // 2) PDPT Entry
     struct paging_desc_entry* pdpt_entry = &pdpt_entries[pdpt_index];
-    if (paging_null_entry(pdpt_entries))
+    if (paging_null_entry(pdpt_entry))
     {
         return NULL;
     }
@@ -344,11 +339,6 @@ struct paging_desc_entry* paging_get(struct paging_desc* desc, void* virt)
     struct paging_desc_entry* pd_entries = 
         (struct paging_desc_entry*)(((uint64_t)(pdpt_entry->address)) << 12);
     
-    if (paging_null_entry(pd_entries))
-    {
-        return NULL;
-    }
-
     // 3) PD Entry
     struct paging_desc_entry* pd_entry = &pd_entries[pd_index];
     if (paging_null_entry(pd_entry))
@@ -358,13 +348,14 @@ struct paging_desc_entry* paging_get(struct paging_desc* desc, void* virt)
 
     struct paging_desc_entry* pt_entries = 
             (struct paging_desc_entry*)((uint64_t)(pd_entry->address) << 12);
-    if (paging_null_entry(pd_entries))
+
+    // 4) PT Entry
+    struct paging_desc_entry* pt_entry = &pt_entries[pt_index];
+    if (paging_null_entry(pt_entry))
     {
         return NULL;
     }
 
-    // 4) PT Entry
-    struct paging_desc_entry* pt_entry = &pt_entries[pt_index];
     return pt_entry;
 }
 void* paging_get_physical_address(struct paging_desc* desc, void* virtual_address)
