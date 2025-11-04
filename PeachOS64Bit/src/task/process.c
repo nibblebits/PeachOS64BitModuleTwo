@@ -99,6 +99,7 @@ struct process_window* process_window_get_from_user_window(struct process* proce
     return NULL;
 }
 
+
 void process_close_windows(struct process* process)
 {
     size_t total_windows = vector_count(process->windows);

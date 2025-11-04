@@ -17,6 +17,7 @@ global peachos_fread:function
 global peachos_fseek:function
 global peachos_fstat:function
 global peachos_realloc:function
+global peachos_window_create:function
 
 ; void print(const char* filename)
 print:
@@ -142,4 +143,19 @@ peachos_realloc:
     int 0x80
     add rsp, 16
     ; RAX = new the pointer address
+    ret
+
+; void* peachos_window_create(const char* title, long width, long height, long flags, long id)
+peachos_window_create:
+    mov rax, 16
+    push qword R8
+    push qword rcx
+    push qword rdx
+    push qword rsi
+    push qword rdi
+    int 0x80
+    ; restore the stack
+    add rsp, 40
+
+    ; RAX = contains the return result
     ret

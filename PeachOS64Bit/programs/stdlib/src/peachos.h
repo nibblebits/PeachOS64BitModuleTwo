@@ -40,4 +40,7 @@ long peachos_fread(void* buffer, size_t size, size_t count, long fd);
 long peachos_fseek(long fd, long offset, long whence);
 long peachos_fstat(long fd, struct file_stat* file_stat_out);
 void* peachos_realloc(void* old_ptr, size_t new_size);
+void* peachos_window_create(const char* title, long width, long height, long flags, long id);
+
+
 #endif

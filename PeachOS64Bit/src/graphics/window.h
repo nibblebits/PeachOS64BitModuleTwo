@@ -120,5 +120,5 @@ void window_redraw_region(struct window* window, int x, int y, int width, int he
 void window_redraw_body_region(struct window* window, int x, int y, int width, int height);
 void window_title_set(struct window* window, const char* title);
 void window_event_push(struct window *window, struct window_event *event);
-
+void window_close(struct window *window);
 #endif

@@ -217,15 +217,9 @@ void kernel_main()
     // graphics_redraw_all();
 
    
-   struct window* win = window_create(graphics_screen_info(), NULL, "Test Window", 100, 100, 200, 200, 0, -1);
-   if (!win)
-   {
-     print("WIndow creation problem\n");
-   }
 
-   enable_interrupts();
+   //enable_interrupts();
    
-   while(1) {}
     print("Loading program...\n");
     struct process* process = 0;
     int res = process_load_switch("@:/blank.elf", &process);
