@@ -41,6 +41,10 @@ static void process_init(struct process *process)
     process->file_handles = vector_new(sizeof(struct process_file_handle *), 4, 0);
     process->kernel_userland_ptrs_vector = vector_new(sizeof(struct userland_ptr*), 4, 0);
     process->windows = vector_new(sizeof(struct process_window*), 4, 0);
+    process->window_events.vector = vector_new(sizeof(struct window_event), 100, 0);
+
+    vector_grow(process->window_events.vector, PROCESS_MAX_WINDOW_EVENTS_RECORDED);
+    
 }
 
 struct process *process_current()

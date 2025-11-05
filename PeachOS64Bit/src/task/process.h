@@ -10,6 +10,8 @@
 #define PROCESS_FILETYPE_ELF 0
 #define PROCESS_FILETYPE_BINARY 1
 
+#define PROCESS_MAX_WINDOW_EVENTS_RECORDED 1000
+
 typedef unsigned char PROCESS_FILETYPE;
 struct window;
 struct graphics_info;
@@ -129,6 +131,13 @@ struct process
 
     // a vector of struct process_window*
     struct vector* windows;
+
+    struct
+    {
+        struct vector* vector;
+        size_t index;
+        size_t total_unpopped;
+    } window_events;
 
     // The arguments of the process.
     struct process_arguments arguments;

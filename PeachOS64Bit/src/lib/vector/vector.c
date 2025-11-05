@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+int vector_resize(struct vector *vec, size_t total_needed_elements);
+
 static off_t vector_offset(struct vector *vec, off_t index)
 {
     return (off_t)vec->e_size * index;
@@ -48,6 +50,22 @@ struct vector *vector_new(size_t element_size, size_t total_reserved_elements_pe
     vec->memory = NULL;
 
     return vec;
+}
+
+int vector_grow(struct vector* vec, size_t total_elements)
+{
+    int res = 0;
+    // WIll always grow up never down.
+    res = vector_resize(vec, total_elements);
+    if (res < 0)
+    {
+        goto out;
+    }
+
+    vec->t_elems += total_elements;
+out:    
+    return res;
+
 }
 
 /**
@@ -141,6 +159,40 @@ int vector_overwrite(struct vector *vec, int index, void *elem, size_t elem_size
     memcpy(vector_memory_at_index(vec, index), elem, vec->e_size);
 
 out:
+    return res;
+}
+
+/**
+ * Returns >= 0 if it exists, negative if not found
+ */
+int vector_has(struct vector* vec, void* elem_val_ptr, size_t elem_size, size_t* index_out)
+{
+    int res = 0;
+    // Safety check.
+    if (vec->e_size != elem_size)
+    {
+        return -EINVARG;
+    }
+
+    // By default assume an error
+    res = -EOUTOFRANGE;
+
+    // Should be okay people shouldnt use the vector
+    // for storing massive amounts of data, pointers or small structs.
+    char tmp_buf[elem_size];
+    size_t total_elems = vector_count(vec);
+    size_t i = 0;
+    for(i = 0; i < total_elems; i++)
+    {
+        vector_at(vec, i, tmp_buf, elem_size);
+        if (memcmp(elem_val_ptr, tmp_buf, elem_size) == 0)
+        {
+            // Vector has this element
+            res = 0;
+            break;
+        }
+    }
+    *index_out = i;
     return res;
 }
 /**

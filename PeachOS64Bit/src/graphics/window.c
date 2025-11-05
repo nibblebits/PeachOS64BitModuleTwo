@@ -775,3 +775,14 @@ out:
 
     return window;
 }
+
+void window_event_to_userland(struct window_event* kernel_win_event_in, struct window_event_userland* userland_win_event_out)
+{
+    userland_win_event_out->type = kernel_win_event_in->type;
+    if (sizeof(userland_win_event_out->data) != sizeof(kernel_win_event_in->data))
+    {
+        panic("The userland win event and kernel win event data regions differ failed to copy\n");
+    }
+    memcpy(&userland_win_event_out->data, &kernel_win_event_in->data, sizeof(userland_win_event_out->data));
+    
+}

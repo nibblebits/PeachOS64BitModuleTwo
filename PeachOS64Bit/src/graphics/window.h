@@ -47,6 +47,38 @@ struct window_event
         } keypress;
     } data;
 };
+
+struct window_event_userland
+{
+    int type;
+    int win_id;
+    struct window* window;
+
+    union 
+    {
+        struct
+        {
+            // empty no properties
+        } focus;
+
+        // positions are relative to the window body
+        struct
+        {
+            int x;
+            int y;
+        } move;
+
+        // relative to the window body.
+        struct
+        {
+            int x;
+            int y;
+        } click;
+
+    } data;
+    
+};
+
 typedef int (*WINDOW_EVENT_HANDLER)(struct window* window, struct window_event* event);
 
 enum
@@ -121,4 +153,6 @@ void window_redraw_body_region(struct window* window, int x, int y, int width, i
 void window_title_set(struct window* window, const char* title);
 void window_event_push(struct window *window, struct window_event *event);
 void window_close(struct window *window);
+void window_event_to_userland(struct window_event* kernel_win_event_in, struct window_event_userland* userland_win_event_out);
+
 #endif
