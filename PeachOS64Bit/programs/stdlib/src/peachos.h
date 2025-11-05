@@ -18,6 +18,8 @@ struct process_arguments
 
 // Forward declare file stat.
 struct file_stat;
+struct window;
+
 
 void print(const char* filename);
 int peachos_getkey();
@@ -41,6 +43,7 @@ long peachos_fseek(long fd, long offset, long whence);
 long peachos_fstat(long fd, struct file_stat* file_stat_out);
 void* peachos_realloc(void* old_ptr, size_t new_size);
 void* peachos_window_create(const char* title, long width, long height, long flags, long id);
+void peachos_divert_stdout_to_window(struct window* window);
 
 
 #endif

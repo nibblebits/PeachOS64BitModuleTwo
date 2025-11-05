@@ -18,6 +18,7 @@ global peachos_fseek:function
 global peachos_fstat:function
 global peachos_realloc:function
 global peachos_window_create:function
+global peachos_divert_stdout_to_window:function
 
 ; void print(const char* filename)
 print:
@@ -158,4 +159,12 @@ peachos_window_create:
     add rsp, 40
 
     ; RAX = contains the return result
+    ret
+
+; void peachos_divert_stdout_to_window(struct window* window);
+peachos_divert_stdout_to_window:
+    mov rax, 17  ; Command 17 - divert stdout to window
+    push qword rdi  ; Pointer to userland window
+    int 0x80
+    add rsp, 8
     ret

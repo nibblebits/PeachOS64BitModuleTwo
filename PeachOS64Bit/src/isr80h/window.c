@@ -64,3 +64,18 @@ out:
 
     return win->user_win;
 }
+
+void* isr80h_command17_sysout_to_window(struct interrupt_frame* frame)
+{
+    void* user_win_ptr = task_get_stack_item(task_current(), 0);
+    if (user_win_ptr)
+    {
+        struct process_window* proc_win = process_window_get_from_user_window(task_current()->process, user_win_ptr);
+        if (proc_win)
+        {
+            process_set_sysout_window(task_current()->process, proc_win);
+        }
+    }
+
+    return 0;
+}

@@ -18,6 +18,10 @@ int main(int argc, char** argv)
     {
         printf("all okay\n");
     }
+
+    // We want all printfs to go to the window
+    peachos_divert_stdout_to_window(win);
+    
     int fd = fopen("@:/blank.elf", "r");
     if (fd > 0)
     {

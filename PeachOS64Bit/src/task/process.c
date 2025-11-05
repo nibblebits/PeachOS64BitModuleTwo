@@ -99,6 +99,31 @@ struct process_window* process_window_get_from_user_window(struct process* proce
     return NULL;
 }
 
+void process_print_char(struct process* process, char c)
+{
+    struct process_window* printing_process_win = process->sysout_win;
+    struct terminal* win_term = window_terminal(printing_process_win->kernel_win);
+    if (win_term)
+    {
+        terminal_write(win_term, c);
+    }
+}
+
+void process_print(struct process* process, const char* message)
+{
+    struct process_window* printing_process_win = process->sysout_win;
+    struct terminal* win_term =  window_terminal(printing_process_win->kernel_win);
+    if (win_term)
+    {
+        terminal_print(win_term, message);
+    }
+}
+
+
+void process_set_sysout_window(struct process* process, struct process_window* win)
+{
+    process->sysout_win = win;
+}
 
 void process_close_windows(struct process* process)
 {
@@ -339,6 +364,7 @@ out_err:
     }
     return 0;
 }
+
 
 static bool process_is_process_pointer(struct process *process, void *ptr)
 {

@@ -132,6 +132,9 @@ struct process
 
     // The arguments of the process.
     struct process_arguments arguments;
+
+    // System output window.
+    struct process_window* sysout_win;
 };
 
 void process_system_init();
@@ -161,4 +164,9 @@ bool process_owns_kernel_window(struct process* process, struct window* kernel_w
 struct process* process_get_from_kernel_window(struct window* window);
 struct process_window* process_window_get_from_user_window(struct process* process, struct process_userspace_window* user_win);
 void process_close_windows(struct process* process);
+
+void process_print_char(struct process* process, char c);
+void process_print(struct process* process, const char* message);
+void process_set_sysout_window(struct process* process, struct process_window* win);
+
 #endif
