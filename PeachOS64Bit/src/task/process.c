@@ -39,12 +39,11 @@ static void process_init(struct process *process)
     memset(process, 0, sizeof(struct process));
     process->allocations = vector_new(sizeof(struct process_allocation), 10, 0);
     process->file_handles = vector_new(sizeof(struct process_file_handle *), 4, 0);
-    process->kernel_userland_ptrs_vector = vector_new(sizeof(struct userland_ptr*), 4, 0);
-    process->windows = vector_new(sizeof(struct process_window*), 4, 0);
+    process->kernel_userland_ptrs_vector = vector_new(sizeof(struct userland_ptr *), 4, 0);
+    process->windows = vector_new(sizeof(struct process_window *), 4, 0);
     process->window_events.vector = vector_new(sizeof(struct window_event), 100, 0);
 
     vector_grow(process->window_events.vector, PROCESS_MAX_WINDOW_EVENTS_RECORDED);
-
 }
 
 struct process *process_current()
@@ -52,12 +51,12 @@ struct process *process_current()
     return current_process;
 }
 
-bool process_owns_kernel_window(struct process* process, struct window* kernel_window)
+bool process_owns_kernel_window(struct process *process, struct window *kernel_window)
 {
     size_t total_windows = vector_count(process->windows);
-    for(size_t i = 0; i < total_windows; i++)
+    for (size_t i = 0; i < total_windows; i++)
     {
-        struct process_window* win = NULL;
+        struct process_window *win = NULL;
         vector_at(process->windows, i, &win, sizeof(win));
         if (win && win->kernel_win == kernel_window)
         {
@@ -68,12 +67,12 @@ bool process_owns_kernel_window(struct process* process, struct window* kernel_w
     return false;
 }
 
-struct process* process_get_from_kernel_window(struct window* window)
+struct process *process_get_from_kernel_window(struct window *window)
 {
     size_t total_processes = vector_count(process_vector);
-    for(size_t i = 0; i < total_processes; i++)
+    for (size_t i = 0; i < total_processes; i++)
     {
-        struct process* process = NULL;
+        struct process *process = NULL;
         vector_at(process_vector, i, &process, sizeof(process));
         if (process)
         {
@@ -81,18 +80,17 @@ struct process* process_get_from_kernel_window(struct window* window)
             {
                 return process;
             }
-
         }
     }
     return NULL;
 }
 
-struct process_window* process_window_get_from_user_window(struct process* process, struct process_userspace_window* user_win)
+struct process_window *process_window_get_from_user_window(struct process *process, struct process_userspace_window *user_win)
 {
     size_t total_windows = vector_count(process->windows);
-    for(size_t i = 0; i < total_windows; i++)
+    for (size_t i = 0; i < total_windows; i++)
     {
-        struct process_window* win = NULL;
+        struct process_window *win = NULL;
         vector_at(process->windows, i, &win, sizeof(win));
         if (win && win->user_win == user_win)
         {
@@ -103,7 +101,138 @@ struct process_window* process_window_get_from_user_window(struct process* proce
     return NULL;
 }
 
-int process_pop_window_event(struct process* process, struct window_event* event_out)
+int process_window_event_get_relative_window_body_coords(struct window_event *event, int *out_x, int *out_y)
+{
+    int res = 0;
+
+    int rel_body_x = event->data.click.x - event->window->graphics->relative_x;
+    int rel_body_y = event->data.click.y - event->window->graphics->relative_y;
+    if (rel_body_x < 0 || rel_body_y < 0 ||
+        rel_body_x > event->window->graphics->width ||
+        rel_body_y > event->window->graphics->height)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    *out_x = rel_body_x;
+    *out_y = rel_body_y;
+out:
+    return res;
+}
+int process_window_event_modify_for_userspace_mouse_click(struct window_event *event)
+{
+    int res = 0;
+    res = process_window_event_get_relative_window_body_coords(event, &event->data.click.x, &event->data.click.y);
+    return res;
+}
+
+int process_window_event_modify_for_userspace_mouse_move(struct window_event *event)
+{
+    int res = 0;
+    res = process_window_event_get_relative_window_body_coords(event, &event->data.move.x, &event->data.move.y);
+    return res;
+}
+
+int process_window_event_modify_for_userspace(struct window_event *event)
+{
+    int res = 0;
+    switch (event->type)
+    {
+    case WINDOW_EVENT_TYPE_MOUSE_CLICK:
+        res = process_window_event_modify_for_userspace_mouse_click(event);
+        break;
+
+    case WINDOW_EVENT_TYPE_MOUSE_MOVE:
+        res = process_window_event_modify_for_userspace_mouse_move(event);
+        break;
+    }
+    return res;
+}
+
+void process_current_set(struct process *process)
+{
+    current_process = process;
+}
+
+int process_window_event_handler_event_focus(struct window *window, struct process *process, struct window_event *event)
+{
+    process_current_set(process);
+    return 0;
+}
+
+struct process_window *process_window_get_from_kernel_window(struct process *process, struct window *kern_win)
+{
+    size_t total_windows = vector_count(process->windows);
+    for (size_t i = 0; i < total_windows; i++)
+    {
+        struct process_window *proc_win = NULL;
+        vector_at(process->windows, i, &proc_win, sizeof(proc_win));
+        if (proc_win)
+        {
+            if (proc_win->kernel_win == kern_win)
+            {
+                return proc_win;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+int process_window_event_handler_event_close(struct window *window, struct process *process, struct window_event *event)
+{
+    int res = 0;
+
+    struct process_window *proc_win = NULL;
+    proc_win = process_window_get_from_kernel_window(process, window);
+    if (proc_win)
+    {
+        process_window_closed(process, proc_win);
+    }
+    return res;
+}
+int process_window_event_handler_kernel_handle_event(struct window *window, struct process *process, struct window_event *event)
+{
+    int res = 0;
+    switch (event->type)
+    {
+    case WINDOW_EVENT_TYPE_FOCUS:
+        res = process_window_event_handler_event_focus(window, process, event);
+        break;
+
+    case WINDOW_EVENT_TYPE_WINDOW_CLOSE:
+        res = process_window_event_handler_event_close(window, process, event);
+        break;
+    }
+
+    return res;
+}
+int process_window_event_handler(struct window *window, struct window_event *event)
+{
+    int res = 0;
+    struct process *process = process_get_from_kernel_window(window);
+    if (!process)
+    {
+        return 0;
+    }
+
+    // Move events are disabled for now
+    if (event->type != WINDOW_EVENT_TYPE_MOUSE_MOVE)
+    {
+        struct window_event cloned_event = *event;
+        res = process_window_event_modify_for_userspace(&cloned_event);
+        if (res >= 0)
+        {
+            process_push_window_event(process, &cloned_event);
+        }
+        res = 0;
+    }
+
+    res = process_window_event_handler_kernel_handle_event(window, process, event);
+    return res;
+}
+int process_pop_window_event(struct process *process, struct window_event *event_out)
 {
     int res = -EOUTOFRANGE;
     if (!process || !event_out)
@@ -122,38 +251,37 @@ int process_pop_window_event(struct process* process, struct window_event* event
 out:
     return res;
 }
-void process_print_char(struct process* process, char c)
+void process_print_char(struct process *process, char c)
 {
-    struct process_window* printing_process_win = process->sysout_win;
-    struct terminal* win_term = window_terminal(printing_process_win->kernel_win);
+    struct process_window *printing_process_win = process->sysout_win;
+    struct terminal *win_term = window_terminal(printing_process_win->kernel_win);
     if (win_term)
     {
         terminal_write(win_term, c);
     }
 }
 
-void process_print(struct process* process, const char* message)
+void process_print(struct process *process, const char *message)
 {
-    struct process_window* printing_process_win = process->sysout_win;
-    struct terminal* win_term =  window_terminal(printing_process_win->kernel_win);
+    struct process_window *printing_process_win = process->sysout_win;
+    struct terminal *win_term = window_terminal(printing_process_win->kernel_win);
     if (win_term)
     {
         terminal_print(win_term, message);
     }
 }
 
-
-void process_set_sysout_window(struct process* process, struct process_window* win)
+void process_set_sysout_window(struct process *process, struct process_window *win)
 {
     process->sysout_win = win;
 }
 
-void process_close_windows(struct process* process)
+void process_close_windows(struct process *process)
 {
     size_t total_windows = vector_count(process->windows);
-    for(size_t i = 0; i < total_windows; i++)
+    for (size_t i = 0; i < total_windows; i++)
     {
-        struct process_window* window = NULL;
+        struct process_window *window = NULL;
         vector_at(process->windows, i, &window, sizeof(window));
         if (window && window->kernel_win)
         {
@@ -162,7 +290,7 @@ void process_close_windows(struct process* process)
     }
 }
 
-int process_push_window_event(struct process* process, struct window_event* event)
+int process_push_window_event(struct process *process, struct window_event *event)
 {
     int element_index = process->window_events.index % PROCESS_MAX_WINDOW_EVENTS_RECORDED;
     struct window_event event_copy = *event;
@@ -172,17 +300,17 @@ int process_push_window_event(struct process* process, struct window_event* even
 
     return 0;
 }
-struct process_window* process_window_create(struct process* process, char* title, int width, int height, int flags, int id)
+struct process_window *process_window_create(struct process *process, char *title, int width, int height, int flags, int id)
 {
     int res = 0;
-    struct process_window* proc_win = kzalloc(sizeof(struct process_window));
+    struct process_window *proc_win = kzalloc(sizeof(struct process_window));
     if (!proc_win)
     {
         res = -ENOMEM;
         goto out;
     }
 
-    struct graphics_info* screen_graphics = graphics_screen_info();
+    struct graphics_info *screen_graphics = graphics_screen_info();
     size_t abs_x = (screen_graphics->width / 2) - (width / 2);
     size_t abs_y = (screen_graphics->height / 2) - (height / 2);
     proc_win->kernel_win = window_create(screen_graphics, NULL, title, abs_x, abs_y, width, height, flags, id);
@@ -204,7 +332,7 @@ struct process_window* process_window_create(struct process* process, char* titl
     strncpy(proc_win->user_win->title, title, sizeof(proc_win->user_win->title));
 
     // Register the window event handler
-    // TODO: 
+    window_event_handler_register(proc_win->kernel_win, process_window_event_handler);
 
     vector_push(process->windows, &proc_win);
 out:
@@ -301,11 +429,11 @@ out:
     return res;
 }
 
-int process_allocation_exists(struct process* process, void* ptr, size_t* index_out)
+int process_allocation_exists(struct process *process, void *ptr, size_t *index_out)
 {
     int res = -ENOTFOUND;
     size_t total_allocations = vector_count(process->allocations);
-    for(size_t i = 0; i < total_allocations; i++)
+    for (size_t i = 0; i < total_allocations; i++)
     {
         struct process_allocation allocation;
         res = vector_at(process->allocations, i, &allocation, sizeof(allocation));
@@ -326,11 +454,11 @@ int process_allocation_exists(struct process* process, void* ptr, size_t* index_
     }
     return res;
 }
-void* process_realloc(struct process* process, void* old_virt_ptr, size_t new_size)
+void *process_realloc(struct process *process, void *old_virt_ptr, size_t new_size)
 {
     int res = 0;
-    void* new_ptr = NULL;
-    void* old_phys_ptr = NULL;
+    void *new_ptr = NULL;
+    void *old_phys_ptr = NULL;
     size_t old_allocation_index = 0;
     res = process_allocation_exists(process, old_virt_ptr, &old_allocation_index);
     if (res < 0)
@@ -363,7 +491,6 @@ void* process_realloc(struct process* process, void* old_virt_ptr, size_t new_si
 
 out:
     return new_ptr;
-
 }
 void *process_malloc(struct process *process, size_t size)
 {
@@ -396,7 +523,6 @@ out_err:
     }
     return 0;
 }
-
 
 static bool process_is_process_pointer(struct process *process, void *ptr)
 {
@@ -522,9 +648,9 @@ int process_free_program_data(struct process *process)
 void process_switch_to_any()
 {
     size_t total_process_slots = vector_count(process_vector);
-    for(size_t i = 0; i < total_process_slots; i++)
+    for (size_t i = 0; i < total_process_slots; i++)
     {
-        struct process* process = NULL;
+        struct process *process = NULL;
         int res = vector_at(process_vector, i, &process, sizeof(&process));
         if (res < 0)
         {
@@ -542,7 +668,7 @@ void process_switch_to_any()
 
 static void process_unlink(struct process *process)
 {
-    struct process* null_process = NULL;
+    struct process *null_process = NULL;
     vector_overwrite(process_vector, process->id, &null_process, sizeof(&null_process));
     if (current_process == process)
     {
@@ -550,14 +676,18 @@ static void process_unlink(struct process *process)
     }
 }
 
-void process_window_closed(struct process* process, struct process_window* proc_win)
+void process_window_closed(struct process *process, struct process_window *proc_win)
 {
-    // TODO: Clean up and close the wnidow
+    // Pop it from the process window vector
+    vector_pop_element(process->windows, &proc_win, sizeof(proc_win));
+
+    process_free(process, proc_win->user_win);
+    kfree(proc_win);
 }
 int process_free_process(struct process *process)
 {
     int res = 0;
-    
+
     process_close_windows(process);
     process_terminate_allocations(process);
     process_free_program_data(process);
@@ -569,7 +699,7 @@ int process_free_process(struct process *process)
 
     vector_free(process->kernel_userland_ptrs_vector);
     process->kernel_userland_ptrs_vector = NULL;
-    
+
     vector_Free(process->window_events.vector);
     process->window_events.vector = NULL;
 
@@ -833,9 +963,9 @@ int process_get_free_slot()
     int res = 0;
     bool found = false;
     size_t total_process_slots = vector_count(process_vector);
-    for(size_t i = 0; i < total_process_slots; i++)
+    for (size_t i = 0; i < total_process_slots; i++)
     {
-        struct process* process_out = NULL;
+        struct process *process_out = NULL;
         res = vector_at(process_vector, i, &process_out, sizeof(process_out));
         if (res < 0)
         {
@@ -857,7 +987,7 @@ int process_get_free_slot()
 
     if (!found)
     {
-        struct process* null_process = NULL;
+        struct process *null_process = NULL;
         int process_index = vector_push(process_vector, &null_process);
 
         // vector_push returned the index of the new null process pointer
