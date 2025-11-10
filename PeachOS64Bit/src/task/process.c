@@ -44,7 +44,7 @@ static void process_init(struct process *process)
     process->window_events.vector = vector_new(sizeof(struct window_event), 100, 0);
 
     vector_grow(process->window_events.vector, PROCESS_MAX_WINDOW_EVENTS_RECORDED);
-    
+
 }
 
 struct process *process_current()
@@ -103,6 +103,25 @@ struct process_window* process_window_get_from_user_window(struct process* proce
     return NULL;
 }
 
+int process_pop_window_event(struct process* process, struct window_event* event_out)
+{
+    int res = -EOUTOFRANGE;
+    if (!process || !event_out)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    if (process->window_events.total_unpopped > 0)
+    {
+        vector_at(process->window_events.vector, 0, event_out, sizeof(struct window_event));
+        process->window_events.total_unpopped--;
+        res = 0;
+    }
+
+out:
+    return res;
+}
 void process_print_char(struct process* process, char c)
 {
     struct process_window* printing_process_win = process->sysout_win;
@@ -143,7 +162,16 @@ void process_close_windows(struct process* process)
     }
 }
 
+int process_push_window_event(struct process* process, struct window_event* event)
+{
+    int element_index = process->window_events.index % PROCESS_MAX_WINDOW_EVENTS_RECORDED;
+    struct window_event event_copy = *event;
+    event_copy.window = NULL;
+    vector_overwrite(process->window_events.vector, element_index, &event_copy, sizeof(event_copy));
+    process->window_events.total_unpopped++;
 
+    return 0;
+}
 struct process_window* process_window_create(struct process* process, char* title, int width, int height, int flags, int id)
 {
     int res = 0;
@@ -541,6 +569,9 @@ int process_free_process(struct process *process)
 
     vector_free(process->kernel_userland_ptrs_vector);
     process->kernel_userland_ptrs_vector = NULL;
+    
+    vector_Free(process->window_events.vector);
+    process->window_events.vector = NULL;
 
     // Free the process stack memory.
     if (process->stack)

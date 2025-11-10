@@ -177,5 +177,7 @@ void process_close_windows(struct process* process);
 void process_print_char(struct process* process, char c);
 void process_print(struct process* process, const char* message);
 void process_set_sysout_window(struct process* process, struct process_window* win);
+int process_push_window_event(struct process* process, struct window_event* event);
+int process_pop_window_event(struct process* process, struct window_event* event_out);
 
 #endif
