@@ -79,3 +79,34 @@ void* isr80h_command17_sysout_to_window(struct interrupt_frame* frame)
 
     return 0;
 }
+
+void* isr80h_command18_get_window_event(struct interrupt_frame* frame)
+{
+    int res = 0;
+    struct window_event_userland* win_event_out = NULL;
+
+    void* win_event_out_virtual_address = task_get_stack_item(task_current(), 0);
+    if (!win_event_out_virtual_address)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    win_event_out = task_virtual_address_to_physical(task_current(), win_event_out_virtual_address);
+    if (!win_event_out)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    struct window_event win_event_kern = {0};
+    res = process_pop_window_event(task_current()->process, &win_event_kern);
+    if (res < 0)
+    {
+        goto out;
+    }
+
+    window_event_to_userland(&win_event_kern, win_event_out);
+out:
+    return res;
+}
