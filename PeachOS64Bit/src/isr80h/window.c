@@ -108,5 +108,5 @@ void* isr80h_command18_get_window_event(struct interrupt_frame* frame)
 
     window_event_to_userland(&win_event_kern, win_event_out);
 out:
-    return res;
+    return (void*) (uintptr_t) res;
 }

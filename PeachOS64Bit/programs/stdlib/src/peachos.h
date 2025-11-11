@@ -3,6 +3,37 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+// temporary: until we implement the GUI SDK 
+struct window_event
+{
+    int type;
+    int win_id;
+    void* window;
+
+    union 
+    {
+        struct
+        {
+            // empty no properties
+        } focus;
+
+        // positions are relative to the window body
+        struct
+        {
+            int x;
+            int y;
+        } move;
+
+        // relative to the window body.
+        struct
+        {
+            int x;
+            int y;
+        } click;
+
+    } data;
+    
+};
 
 struct command_argument
 {
@@ -44,6 +75,6 @@ long peachos_fstat(long fd, struct file_stat* file_stat_out);
 void* peachos_realloc(void* old_ptr, size_t new_size);
 void* peachos_window_create(const char* title, long width, long height, long flags, long id);
 void peachos_divert_stdout_to_window(struct window* window);
-
+int peachos_process_get_window_event(struct window_event* event);
 
 #endif

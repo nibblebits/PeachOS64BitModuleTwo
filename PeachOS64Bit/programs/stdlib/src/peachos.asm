@@ -19,6 +19,7 @@ global peachos_fstat:function
 global peachos_realloc:function
 global peachos_window_create:function
 global peachos_divert_stdout_to_window:function
+global peachos_process_get_window_event:function
 
 ; void print(const char* filename)
 print:
@@ -167,4 +168,13 @@ peachos_divert_stdout_to_window:
     push qword rdi  ; Pointer to userland window
     int 0x80
     add rsp, 8
+    ret
+
+; int peachos_process_get_window_event(struct window_event* event);
+peachos_process_get_window_event:
+    mov rax, 18 ; Command 18 get window event
+    push qword rdi ; The pointer to the window event
+    int 0x80
+    add rsp, 8
+    ; rax < 0 means error or no event
     ret
