@@ -20,6 +20,7 @@ global peachos_realloc:function
 global peachos_window_create:function
 global peachos_divert_stdout_to_window:function
 global peachos_process_get_window_event:function
+global peachos_window_get_graphics:function
 
 ; void print(const char* filename)
 print:
@@ -177,4 +178,13 @@ peachos_process_get_window_event:
     int 0x80
     add rsp, 8
     ; rax < 0 means error or no event
+    ret
+
+; void* peachos_window_get_graphics(struct window* window);
+    mov rax, 19 ; Command 19 get window graphics
+    push qword rdi ; the pointer to the window
+    int 0x80
+    add rsp, 8
+
+    ; RAX = struct userland_graphics*
     ret

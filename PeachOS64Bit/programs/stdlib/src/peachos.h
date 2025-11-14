@@ -76,5 +76,6 @@ void* peachos_realloc(void* old_ptr, size_t new_size);
 void* peachos_window_create(const char* title, long width, long height, long flags, long id);
 void peachos_divert_stdout_to_window(struct window* window);
 int peachos_process_get_window_event(struct window_event* event);
+void* peachos_window_get_graphics(struct window* window);
 
 #endif
