@@ -188,3 +188,11 @@ peachos_process_get_window_event:
 
     ; RAX = struct userland_graphics*
     ret
+
+; void* peachos_graphic_pixels_get(void* graphics);
+peachos_graphic_pixels_get:
+    mov rax, 20   ; Gets the pixel array pointer of a graphic entity
+    push qword rdi ; push the graphics ptr.
+    int 0x80
+    add rsp, 8 
+    ret

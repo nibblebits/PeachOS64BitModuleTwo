@@ -382,6 +382,16 @@ void* paging_get_physical_address(struct paging_desc* desc, void* virtual_addres
     return (void*) full_address;  
 }
 
+uint64_t paging_align_value_to_upper_page(uint64_t val_in)
+{
+    if ((uint64_t) val_in % PAGING_PAGE_SIZE)
+    {
+        return ((uint64_t) val_in + PAGING_PAGE_SIZE - ((uint64_t) val_in % PAGING_PAGE_SIZE));
+    }
+
+    return val_in;
+}
+
 // OLD CODE BELOW
 //==========================================================
 

@@ -26,3 +26,42 @@ struct userland_graphics* isr80h_graphics_make_userland_metadata(struct process*
 
     return userland_graphics_metadata;
 }
+
+void* isr80h_command20_graphics_pixels_get(struct interrupt_frame* frame)
+{
+    int res = 0;
+    struct framebuffer_pixel* graphics_pixels_virt_out = NULL;
+    struct userland_graphics* userland_graphics_ptr = NULL;
+    userland_graphics_ptr = task_get_stack_item(task_current(), 0);
+    if (!userland_graphics_ptr)
+    {
+        return NULL;
+
+    }
+
+    userland_graphics_ptr = task_virtual_address_to_physical(task_current(), userland_graphics_ptr);
+    if (!userland_graphics_ptr)
+    {
+        return NULL;
+    }
+
+    struct graphics_info* kernel_land_graphics_ptr = process_userland_pointer_kernel_ptr(task_current()->process, userland_graphics_ptr->userland_ptr);
+    if(!kernel_land_graphics_ptr)
+    {
+        return NULL;
+    }
+
+    struct framebuffer_pixel* pixels = kernel_land_graphics_ptr->pixels;
+    if (!pixels)
+    {
+        return NULL;
+    }
+
+    res = process_map_graphics_framebuffer_pixels_into_userspace(task_current()->process, kernel_land_graphics_ptr, &graphics_pixels_virt_out, NULL);
+    if (res < 0)
+    {
+        return NULL;
+    }
+
+    return graphics_pixels_virt_out;
+}
