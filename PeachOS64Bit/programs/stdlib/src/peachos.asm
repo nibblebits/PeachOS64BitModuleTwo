@@ -21,6 +21,7 @@ global peachos_window_create:function
 global peachos_divert_stdout_to_window:function
 global peachos_process_get_window_event:function
 global peachos_window_get_graphics:function
+global peachos_window_redraw:function
 
 ; void print(const char* filename)
 print:
@@ -193,6 +194,14 @@ peachos_process_get_window_event:
 peachos_graphic_pixels_get:
     mov rax, 20   ; Gets the pixel array pointer of a graphic entity
     push qword rdi ; push the graphics ptr.
+    int 0x80
+    add rsp, 8 
+    ret
+
+; void peachos_window_redraw(struct window* window);
+peachos_window_redraw:
+    mov rax, 21 ; Redraws the window
+    push qword rdi ; push window pointer
     int 0x80
     add rsp, 8 
     ret
