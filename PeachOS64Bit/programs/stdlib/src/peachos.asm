@@ -22,6 +22,7 @@ global peachos_divert_stdout_to_window:function
 global peachos_process_get_window_event:function
 global peachos_window_get_graphics:function
 global peachos_window_redraw:function
+global peachos_graphic_pixels_get:function
 
 ; void print(const char* filename)
 print:
@@ -182,6 +183,7 @@ peachos_process_get_window_event:
     ret
 
 ; void* peachos_window_get_graphics(struct window* window);
+peachos_window_get_graphics:
     mov rax, 19 ; Command 19 get window graphics
     push qword rdi ; the pointer to the window
     int 0x80
