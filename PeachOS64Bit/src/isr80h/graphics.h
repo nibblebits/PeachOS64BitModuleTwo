@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+struct process;
+struct graphics_info;
+struct interrupt_frame;
 struct userland_graphics
 {
     size_t x;

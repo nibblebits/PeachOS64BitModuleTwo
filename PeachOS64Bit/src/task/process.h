@@ -16,6 +16,7 @@ typedef unsigned char PROCESS_FILETYPE;
 struct window;
 struct graphics_info;
 struct window_event;
+struct framebuffer_pixel;
 
 struct process_allocation
 {
