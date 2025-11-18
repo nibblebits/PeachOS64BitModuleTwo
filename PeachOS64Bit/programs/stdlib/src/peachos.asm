@@ -24,6 +24,7 @@ global peachos_window_get_graphics:function
 global peachos_window_redraw:function
 global peachos_graphic_pixels_get:function
 global peachos_graphics_create:function
+global peachos_window_redraw_region:function
 
 ; void print(const char* filename)
 print:
@@ -220,4 +221,16 @@ peachos_graphics_create:
     int 0x80
     add rsp, 40 ; restore the stack
     ; RAX = contain the new graphics metadata
+    ret
+
+; void peachos_window_redraw_region(long rel_x, long rel_y, long rel_width, long rel_height, struct window* window);
+peachos_window_redraw_region:
+    mov rax, 23 ; COmmand 23 redraw region on window
+    push qword r8 ; window
+    push qword rcx ; rel_height
+    push qword rdx ; rel_width
+    push qword rsi ; rel_y
+    push qword rdi ; rel_x
+    int 0x80
+    add rsp, 40 ; restore stack
     ret
