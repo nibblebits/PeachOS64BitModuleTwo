@@ -25,6 +25,7 @@ global peachos_window_redraw:function
 global peachos_graphic_pixels_get:function
 global peachos_graphics_create:function
 global peachos_window_redraw_region:function
+global peachos_window_title_set:function
 
 ; void print(const char* filename)
 print:
@@ -233,4 +234,14 @@ peachos_window_redraw_region:
     push qword rdi ; rel_x
     int 0x80
     add rsp, 40 ; restore stack
+    ret
+
+; void peachos_window_title_set(struct window* window, const char* title)
+peachos_window_title_set:
+    mov rax, 24  ; update window
+    push qword rsi ; title
+    push qword rdi ; window
+    push qword 0 ; update type
+    int 0x80 
+    add rsp, 24 ; restore the stack
     ret
