@@ -23,6 +23,7 @@ global peachos_process_get_window_event:function
 global peachos_window_get_graphics:function
 global peachos_window_redraw:function
 global peachos_graphic_pixels_get:function
+global peachos_graphics_create:function
 
 ; void print(const char* filename)
 print:
@@ -206,4 +207,17 @@ peachos_window_redraw:
     push qword rdi ; push window pointer
     int 0x80
     add rsp, 8 
+    ret
+
+; void* peachos_graphics_create(size_t x, size_t y, size_t width, size_t height, void* parent_graphics);
+peachos_graphics_create:
+    mov rax, 22 ; COmmand 22 - create relative graphics
+    push qword rdi ; x
+    push qword rsi ; y
+    push qword rdx ; width
+    push qword rcx ; height
+    push qword r8 ; parent graphics
+    int 0x80
+    add rsp, 40 ; restore the stack
+    ; RAX = contain the new graphics metadata
     ret

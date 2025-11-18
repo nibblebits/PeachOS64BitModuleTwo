@@ -79,4 +79,6 @@ int peachos_process_get_window_event(struct window_event* event);
 void* peachos_window_get_graphics(struct window* window);
 void* peachos_graphic_pixels_get(void* graphics);
 void peachos_window_redraw(struct window* window);
+void* peachos_graphics_create(size_t x, size_t y, size_t width, size_t height, void* parent_graphics);
+
 #endif
