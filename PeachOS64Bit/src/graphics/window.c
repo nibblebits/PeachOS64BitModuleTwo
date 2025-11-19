@@ -28,6 +28,10 @@ int window_autoincrement_id_current = 100000;
 size_t window_get_largest_zindex();
 int window_recalculate_zindexes();
 
+void window_keyboard_event_listener_on_event(struct keyboard* keyboard, struct keyboard_event* event);
+struct keyboard_listener window_keyboard_listener = {
+    .on_event=window_keyboard_event_listener_on_event
+};
 int window_system_initialize()
 {
     int res = 0;
@@ -133,7 +137,7 @@ int window_system_initialize_stage2()
 {
     mouse_register_move_handler(NULL, window_screen_mouse_move_handler);
     mouse_register_click_handler(NULL, window_click_handler);
-    // TODO: Implement keyboard functionality
+    keybaord_register_handler(NULL, window_keyboard_listener)
     return 0;
 }
 
@@ -785,4 +789,35 @@ void window_event_to_userland(struct window_event* kernel_win_event_in, struct w
     }
     memcpy(&userland_win_event_out->data, &kernel_win_event_in->data, sizeof(userland_win_event_out->data));
     
+}
+
+void window_keyboard_event_listener_on_event_keypress(struct window* win, struct keyboard* keyboard, struct keyboard_event* event)
+{
+    // Pass the event to all the window event listeners
+    struct window_event win_event = {0};
+    win_event.type = WINDOW_EVENT_TYPE_KEY_PRESS;
+    win_event.data.keypress.key = event->data.key_press.key;
+    window_event_push(win, &win_event);
+}
+
+void window_keyboard_event_listener_on_event_capslock_change(struct window* win, struct keyboard_event* event)
+{
+    // do nothing
+}
+void window_keyboard_event_listener_on_event(struct keyboard* keyboard, struct keyboard_event* event)
+{
+    struct window* focused_win = window_focused();
+    if (focused_win)
+    {
+        switch(event->type)
+        {
+            case KEYBOARD_EVENT_KEY_PRESS:
+            window_keyboard_event_listener_on_event_keypress(focused_win, keyboard, event);
+            break;
+
+            case KEYBOARD_EVENT_CAPS_LOCK_CHANGE:
+            window_keyboard_event_listener_on_event_capslock_change(focused_win, keyboard, event);
+            break;
+        }
+    }
 }
