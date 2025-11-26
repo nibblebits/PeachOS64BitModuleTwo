@@ -164,3 +164,159 @@ uint8_t pci_cfg_read_byte(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offse
     uint32_t v = pci_cfg_read_dword(bus, slot, func, offset & ~0x3u);
     return (uint8_t) (v >> ((offset & 3u) * 8));
 }
+
+void pci_cfg_write_dword(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint32_t value)
+{
+    uint8_t off = offset & ~0x3u;
+    volatile uint8_t* p = pci_ecam_cfg_ptr(bus, slot, func, off);
+    if (p)
+    {
+        *(volatile uint32_t*)p = value;
+        return;
+    }
+
+    uint32_t address = pci_cfg_addr_legacy(bus, slot, func, off);
+    outdw(PCI_CFG_ADDRESS, address);
+    outdw(PCI_DATA_ADDRESS, value);
+}   
+
+
+void pci_cfg_write_word(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint16_t value)
+{
+    uint8_t off = offset & ~0x3u;
+    volatile uint8_t* p = pci_ecam_cfg_ptr(bus, slot, func, off);
+    if (p)
+    {
+        volatile uint32_t* pdw = (volatile uint32_t*) p;
+        uint32_t tmp = *pdw;
+        if ((offset & 2u) == 0)
+        {
+            tmp = (tmp & 0xFFFF0000u) | (uint32_t) value;
+        }
+        else
+        {
+            tmp = (tmp & 0x0000FFFFu) | ((uint32_t) value << 16);
+        }
+
+        *pdw = tmp;
+        return;
+    }
+
+
+    // Legacy PCI 
+    uint32_t address = pci_cfg_addr_legacy(bus, slot, func, off);
+    outdw(PCI_CFG_ADDRESS, address);
+    uint32_t tmp = insdw(PCI_DATA_ADDRESS);
+    if ((offset & 2u) == 0)
+    {
+        tmp = (tmp & 0xFFFF0000u) | (uint32_t) value;
+    }
+    else
+    {
+        tmp = (tmp & 0x0000FFFFu) | ((uint32_t) value << 16); 
+    }
+
+    outdw(PCI_CFG_ADDRESS, address);
+    outdw(PCI_DATA_ADDRESS, tmp);
+}
+
+static void pci_size_bars(uint8_t bus, uint8_t dev, uint8_t func, struct pci_device* device)
+{
+    uint8_t hdr = pci_cfg_read_byte(bus, dev, func, PCI_HEADER_HEADER_TYPE_OFFSET) & 0X7Fu;
+    int bar_count = (hdr == 0x00) ? 6 : (hdr == 0x01 ? 2 : 0); // type 0:6, type1:2, else: 0
+    
+    uint16_t cmd_orig = pci_cfg_read_word(bus, dev, func, PCI_HEADER_COMMAND_OFFSET);
+    // Disable IO, mem and bus mastering during bar sizing 
+    pci_cfg_write_word(bus, dev, func, PCI_HEADER_COMMAND_OFFSET, (uint16_t)(cmd_orig & ~(uint16_t) 0x0007));
+
+    for (int i = 0; i < bar_count; ++i)
+    {
+        struct pci_device_bar* bar = &device->bars[i];
+        bar->flags = 0;
+        bar->addr = 0;
+        bar->size = 0;
+        uint8_t off = PCI_HEADER_BAR0_OFFSET + i * 4;
+
+        uint32_t lo_orig = pci_cfg_read_dword(bus, dev, func, off);
+        bool is_io = (lo_orig & 0x1u) != 0;
+        bar->type = is_io ? PCI_DEVICE_IO_PORT : PCI_DEVICE_IO_MEMORY;
+        if (!is_io && (lo_orig & 0x8u)) 
+            bar->flags |= PCI_DEVICE_BAR_FLAG_PREFETCHABLE;
+
+        if (is_io)
+        {
+            uint32_t base = lo_orig & ~0x3u;
+            pci_cfg_write_dword(bus, dev, func, off, 0xFFFFFFFFu);
+            uint32_t szv = pci_cfg_read_dword(bus, dev, func, off);
+            pci_cfg_write_dword(bus, dev, func, off, lo_orig);
+
+            uint32_t masked = (szv & ~0x3u);
+            if (!masked)
+            {
+                bar->size = 0;
+                continue;
+            }
+
+            uint64_t mask = (uint64_t) masked;
+            bar->addr = (uint64_t) base;
+            bar->size = (~mask) + 1u;
+        }
+        else
+        {
+            uint32_t type_bits = (lo_orig >> 1) & 0x3u;
+            bool is64 = (type_bits == 0x2u);
+            if (is64 && (i+1) < bar_count)
+            {
+                uint32_t hi_orig = pci_cfg_read_dword(bus, dev, func, off+4);
+
+                pci_cfg_write_dword(bus, dev, func, off, 0xFFFFFFFFu);
+                pci_cfg_write_dword(bus, dev, func, off+4, 0xFFFFFFFFu);
+                uint32_t lo_sz = pci_cfg_read_dword(bus,dev, func, off);
+                uint32_t hi_sz = pci_cfg_read_dword(bus, dev, func, off+4);
+                pci_cfg_write_dword(bus, dev, func, off, lo_orig);
+                pci_cfg_write_dword(bus, dev, func, off+4, hi_orig);
+
+                uint64_t base64 = ((uint64_t) hi_orig << 32) | (uint64_t)(lo_orig & ~0xFu);
+                uint64_t mask64 = ((uint64_t) hi_sz << 32) | (uint64_t)(lo_sz & ~0xFu);
+                if (mask64 == 0)
+                {
+                    bar->size = 0;
+                    goto restore64;
+                }
+
+                bar->addr = base64;
+                bar->size = (~mask64) + 1u;
+                bar->flags |= PCI_DEVICE_BAR_FLAG_64BIT;
+restore64:
+                ++i;
+                if (i < bar_count)
+                {
+                    struct pci_device_bar* ext = &device->bars[i];
+                    ext->type = bar->type;
+                    ext->flags = PCI_DEVICE_BAR_FLAG_IS_EXT;
+                    ext->addr = base64 >> 32;
+                    ext->size = 0;
+                }
+            }
+            else
+            {
+                uint32_t base = lo_orig & ~0xFu;
+                pci_cfg_write_dword(bus, dev, func, off, 0xFFFFFFFFu);
+                uint32_t szv = pci_cfg_reaD_dword(bus, dev, func, off);
+                pci_cfg_write_dword(bus, dev, func, off, lo_orig);
+
+                uint32_t masked = (szv & ~0xFu);
+                if (!masked)
+                {
+                    bar->size = 0;
+                    continue;
+                }
+                uint64_t mask = (uint64_t) masked;
+                bar->addr = (uint64_t) base;
+                bar->size = (~mask) + 1u;
+            }
+        }
+    }
+
+    pci_cfg_write_word(bus, dev, func, PCI_HEADER_COMMAND_OFFSET, cmd_orig);
+}
