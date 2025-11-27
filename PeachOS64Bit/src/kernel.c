@@ -11,6 +11,7 @@
 #include "string/string.h"
 #include "isr80h/isr80h.h"
 #include "io/tsc.h"
+#include "io/pci.h"
 #include "task/task.h"
 #include "task/process.h"
 #include "graphics/font.h"
@@ -132,6 +133,9 @@ void kernel_main()
 
     // Enable interrupt descriptor table
     idt_init();
+
+    // Enable PCI and scan for devices
+    pci_init();
 
     // Enable fs functionality
     fs_init();

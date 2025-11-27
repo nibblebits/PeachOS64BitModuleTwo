@@ -137,7 +137,7 @@ int window_system_initialize_stage2()
 {
     mouse_register_move_handler(NULL, window_screen_mouse_move_handler);
     mouse_register_click_handler(NULL, window_click_handler);
-    keybaord_register_handler(NULL, window_keyboard_listener)
+    keyboard_register_handler(NULL, window_keyboard_listener);
     return 0;
 }
 
@@ -800,7 +800,7 @@ void window_keyboard_event_listener_on_event_keypress(struct window* win, struct
     window_event_push(win, &win_event);
 }
 
-void window_keyboard_event_listener_on_event_capslock_change(struct window* win, struct keyboard_event* event)
+void window_keyboard_event_listener_on_event_capslock_change(struct window* win, struct keyboard* keyboard, struct keyboard_event* event)
 {
     // do nothing
 }

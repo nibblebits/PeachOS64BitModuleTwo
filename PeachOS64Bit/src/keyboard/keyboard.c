@@ -2,7 +2,8 @@
 #include "status.h"
 #include "kernel.h"
 #include "task/process.h"
-#include "heap/kheap.h"
+#include "memory/heap/kheap.h"
+#include "memory/memory.h"
 #include "task/task.h"
 #include "classic.h"
 

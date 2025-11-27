@@ -178,7 +178,7 @@ void* isr80h_command23_window_redraw_region(struct interrupt_frame* frame)
     return NULL;
 }
 
-void* isr90h_command24_update_window_title(struct window* window, struct interrupt_frame* frame)
+void* isr80h_command24_update_window_title(struct window* window, struct interrupt_frame* frame)
 {
     int res = 0;
     const char* title_ptr = task_virtual_address_to_physical(task_current(), task_get_stack_item(task_current(), 2));
@@ -190,7 +190,7 @@ void* isr90h_command24_update_window_title(struct window* window, struct interru
 
     window_title_set(window, title_ptr);
 out:
-    return res;
+    return (void*) (uintptr_t) res;
 }
 
 void* isr80h_command24_update_window(struct interrupt_frame* frame)
@@ -215,7 +215,7 @@ void* isr80h_command24_update_window(struct interrupt_frame* frame)
     switch(update_type)
     {
         case ISR80H_WINDOW_UPDATE_TITLE:
-            res = isr80h_command24_update_window_title(kern_window, frame);
+            res = (int)(uintptr_t)isr80h_command24_update_window_title(kern_window, frame);
         break;
 
         default:
