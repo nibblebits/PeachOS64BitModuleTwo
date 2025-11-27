@@ -223,6 +223,10 @@ void kernel_main()
    
 
    //enable_interrupts();
+
+    print("Total PCI devices:");
+    print(itoa((int)pci_device_count()));
+    print("\n");
    
     print("Loading program...\n");
     struct process* process = 0;
