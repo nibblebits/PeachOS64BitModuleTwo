@@ -14,6 +14,7 @@ typedef unsigned int PEACHOS_DISK_TYPE;
 
 #define PEACHOS_KERNEL_FILESYSTEM_NAME "PEACH      "
 
+struct disk_driver;
 struct disk
 {
     PEACHOS_DISK_TYPE type;
@@ -24,6 +25,10 @@ struct disk
 
     struct filesystem* filesystem;
 
+    // The hardware disk this disk is attached too
+    struct disk* hardware_disk;
+
+    
     // Set both to zero for the primary disk
     // all bounds checking is ignored if set to zero.
     size_t starting_lba;
@@ -31,9 +36,13 @@ struct disk
 
     // The private data of our filesystem
     void* fs_private;
+
+    // private data known by the disk driver in relation to the disk
+    void* driver_private;
 };
 
-int disk_create_new(int type, int starting_lba, int ending_lba, size_t sector_size, struct disk** disk_out);
+struct disk* disk_hardware_disk(struct disk* disk);
+int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int type, int starting_lba, int ending_lba, size_t sector_size, void* driver_private_data, struct disk** disk_out);
 void disk_search_and_init();
 struct disk* disk_get(int index);
 int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf);

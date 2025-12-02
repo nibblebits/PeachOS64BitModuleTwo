@@ -69,7 +69,12 @@ int disk_read_sector(int lba, int total, void* buf)
     return 0;
 }
 
-int disk_create_new(int type, int starting_lba, int ending_lba, size_t sector_size, struct disk** disk_out)
+struct disk* disk_hardware_disk(struct disk* disk)
+{
+    return disk->hardware_disk;
+}
+
+int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int type, int starting_lba, int ending_lba, size_t sector_size, void* driver_private_data, struct disk** disk_out)
 {
     int res = 0;
     struct disk* disk = kzalloc(sizeof(struct disk));
@@ -78,11 +83,37 @@ int disk_create_new(int type, int starting_lba, int ending_lba, size_t sector_si
         res = -ENOMEM;
         goto out;
     }
+
+    if (hardware_disk && type == PEACHOS_DISK_TYPE_REAL)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    if (type == PEACHOS_DISK_TYPE_REAL)
+    {
+        hardware_disk = disk;
+    }
+
+    if (hardware_disk == NULL)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
+    if (hardware_disk->type != PEACHOS_DISK_TYPE_REAL)
+    {
+        res = -EINVARG;
+        goto out;
+    }
+
     disk->type = type;
     disk->id = vector_count(disk_vector);
     disk->sector_size = sector_size;
     disk->starting_lba = starting_lba;
     disk->ending_lba = ending_lba;
+    disk->driver_private = driver_private_data;
+    disk->hardware_disk = hardware_disk;
 
     // Not all disks have filesystems its not an error not to have one
     disk->filesystem = fs_resolve(disk);
