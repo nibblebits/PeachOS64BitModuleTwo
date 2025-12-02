@@ -39,4 +39,14 @@ struct disk_driver
     // Private data the disk driver may use for its self
     void* private;
 };
+
+
+int disk_driver_mount_all();
+int disk_driver_register(struct disk_driver* driver);
+void* disk_driver_private_data(struct disk_driver* driver);
+bool disk_driver_registered(struct disk_driver* driver);
+int disk_driver_mount_partition(struct disk_driver* driver, struct disk* disk, int starting_lba, int ending_lba, struct disk** partition_disk_out);
+int disk_driver_system_init();
+int disk_driver_system_load_drivers();
+
 #endif

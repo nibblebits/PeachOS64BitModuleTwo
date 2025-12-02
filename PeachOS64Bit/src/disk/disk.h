@@ -2,6 +2,7 @@
 #define DISK_H
 
 #include "fs/file.h"
+#include "driver.h"
 
 typedef unsigned int PEACHOS_DISK_TYPE;
 
@@ -24,6 +25,8 @@ struct disk
     int id;
 
     struct filesystem* filesystem;
+
+    struct disk_driver* driver;
 
     // The hardware disk this disk is attached too
     struct disk* hardware_disk;
