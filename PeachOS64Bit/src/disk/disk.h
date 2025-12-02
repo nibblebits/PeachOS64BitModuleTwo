@@ -51,5 +51,8 @@ struct disk* disk_get(int index);
 int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf);
 struct disk* disk_primary_fs_disk();
 struct disk* disk_primary();
+int disk_filesystem_mount(struct disk* disk);
+int disk_create_partition(struct disk* disk, int starting_lba, int ending_lba, struct disk** partition_disk_out);
+
 
 #endif

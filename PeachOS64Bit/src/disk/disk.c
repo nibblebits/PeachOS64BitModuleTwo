@@ -74,6 +74,29 @@ struct disk* disk_hardware_disk(struct disk* disk)
     return disk->hardware_disk;
 }
 
+int disk_create_partition(struct disk* disk, int starting_lba, int ending_lba, struct disk** partition_disk_out)
+{
+    return disk_driver_mount_partition(disk->driver, disk, starting_lba, ending_lba, partition_disk_out);
+}
+
+int disk_filesystem_mount(struct disk* disk)
+{
+    disk->filesystem = fs_resolve(disk);
+    if (disk->filesystem)
+    {
+        char fs_name[11] = {0};
+        char primary_drive_fs_name[11] = {0};
+        strncpy(primary_drive_fs_name, PEACHOS_KERNEL_FILESYSTEM_NAME, strlen(PEACHOS_KERNEL_FILESYSTEM_NAME));
+        disk->filesystem->volume_name(disk->fs_private, fs_name, sizeof(fs_name));
+        if (strncmp(fs_name, primary_drive_fs_name, sizeof(fs_name)) == 0)
+        {
+            primary_fs_disk = disk;
+        }
+    }
+
+    return 0;
+}
+
 int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int type, int starting_lba, int ending_lba, size_t sector_size, void* driver_private_data, struct disk** disk_out)
 {
     int res = 0;
@@ -112,24 +135,10 @@ int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int 
     disk->sector_size = sector_size;
     disk->starting_lba = starting_lba;
     disk->ending_lba = ending_lba;
+    disk->driver = driver;
     disk->driver_private = driver_private_data;
     disk->hardware_disk = hardware_disk;
 
-    // Not all disks have filesystems its not an error not to have one
-    disk->filesystem = fs_resolve(disk);
-    if (disk->filesystem)
-    {
-        char fs_name[11] = {0};
-        char primary_drive_fs_name[11] = {0};
-        strncpy(primary_drive_fs_name, PEACHOS_KERNEL_FILESYSTEM_NAME, strlen(PEACHOS_KERNEL_FILESYSTEM_NAME));
-        // Is the disk the primary disk, lets check
-        disk->filesystem->volume_name(disk->fs_private, fs_name, sizeof(fs_name));
-        if (strncmp(fs_name, primary_drive_fs_name, sizeof(fs_name)) == 0)
-        {
-            // Set the primary filesystem disk
-            primary_fs_disk = disk;
-        }
-    }
 
     if (disk_out)
     {
@@ -198,5 +207,10 @@ int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf)
         }
     }
 
-    return disk_read_sector(absolute_lba, total, buf);
+    if (!disk->driver->functions.read)
+    {
+        return -EIO;
+    }
+
+    return idisk->driver->functions.read(idisk, absolute_lba, total, buf);
 }
