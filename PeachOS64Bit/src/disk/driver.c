@@ -3,6 +3,7 @@
 #include "disk/disk.h"
 #include "string/string.h"
 #include "memory/memory.h"
+#include "drivers/pata.h"
 #include "status.h"
 
 struct vector* disk_driver_vec = NULL;
@@ -12,8 +13,13 @@ int disk_driver_system_load_drivers()
     int res = 0;
 
     // register ATA/IDE Pata
-
+    res = disk_driver_register(pata_driver_init());
+    if (res < 0)
+    {
+        goto out;
+    }
     // register nvme
+out:
     return res;
 }
 
