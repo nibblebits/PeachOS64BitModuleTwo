@@ -17,57 +17,57 @@ struct disk* disk = NULL;
 // where kernel files are found.
 struct disk* primary_fs_disk = NULL;
 
-int disk_read_sector(int lba, int total, void* buf)
-{
-    // Wait for the disk not to be busy
-    while(insb(0x1F7) & 0x80)
-    {
-        // spin
-    }
+// int disk_read_sector(int lba, int total, void* buf)
+// {
+//     // Wait for the disk not to be busy
+//     while(insb(0x1F7) & 0x80)
+//     {
+//         // spin
+//     }
 
-    // Select drive: bits 7..4=0xE, bits 3..0 = high nibble of lba
-    outb(0x1F6, 0xE0 | ((lba >> 24) & 0x0F));
-    // Sector count
-    outb(0x1F2, (unsigned char) total);
-    // LBA low, mid, high
-    outb(0x1F3, (unsigned char)(lba & 0xff));
-    outb(0x1F4, (unsigned char)((lba >> 8) & 0xff));
-    outb(0x1F5, (unsigned char)((lba >> 16) & 0xff));
+//     // Select drive: bits 7..4=0xE, bits 3..0 = high nibble of lba
+//     outb(0x1F6, 0xE0 | ((lba >> 24) & 0x0F));
+//     // Sector count
+//     outb(0x1F2, (unsigned char) total);
+//     // LBA low, mid, high
+//     outb(0x1F3, (unsigned char)(lba & 0xff));
+//     outb(0x1F4, (unsigned char)((lba >> 8) & 0xff));
+//     outb(0x1F5, (unsigned char)((lba >> 16) & 0xff));
 
-    // Read SECTORS command (0x20)
-    outb(0x1F7, 0x20);
+//     // Read SECTORS command (0x20)
+//     outb(0x1F7, 0x20);
 
-    unsigned short* ptr = (unsigned short*) buf;
-    for (int b = 0; b < total; b++)
-    {
-        // Wait for the disk not to be busy
-        while(insb(0x1F7) & 0x80)
-        {
-            // spin
-        }
+//     unsigned short* ptr = (unsigned short*) buf;
+//     for (int b = 0; b < total; b++)
+//     {
+//         // Wait for the disk not to be busy
+//         while(insb(0x1F7) & 0x80)
+//         {
+//             // spin
+//         }
 
-        // Check error bit
-        char status = insb(0x1F7);
-        if (status & 0x01)
-        {
-            return -EIO;
-        }
+//         // Check error bit
+//         char status = insb(0x1F7);
+//         if (status & 0x01)
+//         {
+//             return -EIO;
+//         }
 
-        // Wait for the buffer to be ready
-        while(!(insb(0x1F7) & 0x08))
-        {
-            // spin
-        }
+//         // Wait for the buffer to be ready
+//         while(!(insb(0x1F7) & 0x08))
+//         {
+//             // spin
+//         }
 
-        // Copy from hard disk to memory
-        for (int word = 0; word < 256; word++)
-        {
-            *ptr++ = insw(0x1F0);
-        }
+//         // Copy from hard disk to memory
+//         for (int word = 0; word < 256; word++)
+//         {
+//             *ptr++ = insw(0x1F0);
+//         }
 
-    }
-    return 0;
-}
+//     }
+//     return 0;
+// }
 
 struct disk* disk_hardware_disk(struct disk* disk)
 {
@@ -148,9 +148,25 @@ int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int 
 out:
     return res;
 }
-void disk_search_and_init()
+
+int disk_mount_all()
 {
     int res = 0;
+    res = disk_driver_mount_all();
+    return res;
+}
+
+int disk_search_and_init()
+{
+    int res = 0;
+
+    res = disk_driver_system_init();
+    if (res < 0)
+    {
+        res = -EIO;
+        goto out;
+    }
+
     disk_vector = vector_new(sizeof(struct disk*), 4, 0);
     if (!disk_vector)
     {
@@ -158,13 +174,13 @@ void disk_search_and_init()
         goto out;
     }
 
-    res = disk_create_new(PEACHOS_DISK_TYPE_REAL, 0, 0, PEACHOS_SECTOR_SIZE, &disk);
+    res = disk_mount_all();
     if (res < 0)
     {
         goto out;
     }
 out:
-    return;
+    return res;
 }
 
 struct disk* disk_primary()
@@ -213,4 +229,9 @@ int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf)
     }
 
     return idisk->driver->functions.read(idisk, absolute_lba, total, buf);
+}
+
+void* disk_private_data_driver(struct disk* disk)
+{
+    return disk->driver_private;
 }

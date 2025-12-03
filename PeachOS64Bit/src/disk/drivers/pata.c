@@ -62,7 +62,7 @@ int pata_disk_base_drive_address(struct disk* disk, int offset)
 
     return drive_address + offset;
 }
-int pata_disk_ctrl_drive_address(struct disk disk, int offset)
+int pata_disk_ctrl_drive_address(struct disk* disk, int offset)
 {
     int drive_address = PATA_INVALID_BASE_ADDRESS;
     struct pata_driver_private_data* private_data = disk_private_data_driver(disk);

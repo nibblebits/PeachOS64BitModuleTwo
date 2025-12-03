@@ -86,7 +86,7 @@ void* disk_driver_private_data(struct disk_driver* driver)
 int disk_driver_register(struct disk_driver* driver)
 {
     int res = 0;
-    if (disk_driver_register(driver))
+    if (disk_driver_registered(driver))
     {
         res = -EISTKN;
         goto out;

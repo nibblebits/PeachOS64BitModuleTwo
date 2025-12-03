@@ -46,13 +46,13 @@ struct disk
 
 struct disk* disk_hardware_disk(struct disk* disk);
 int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int type, int starting_lba, int ending_lba, size_t sector_size, void* driver_private_data, struct disk** disk_out);
-void disk_search_and_init();
+int disk_search_and_init();
 struct disk* disk_get(int index);
 int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf);
 struct disk* disk_primary_fs_disk();
 struct disk* disk_primary();
 int disk_filesystem_mount(struct disk* disk);
 int disk_create_partition(struct disk* disk, int starting_lba, int ending_lba, struct disk** partition_disk_out);
-
+void* disk_private_data_driver(struct disk* disk);
 
 #endif
