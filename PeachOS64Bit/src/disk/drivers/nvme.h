@@ -56,7 +56,7 @@ struct nvme_submission_queue_entry
 #define NVME_COMPLETION_QUEUE_STATUS(e) \ 
     (((e)->status_phase_and_command_identifier >> 17) & 0x7FFFU)
 
-struct nvme_compeltion_queue_entry
+struct nvme_completion_queue_entry
 {
     uint32_t command_specific;
     uint32_t command_specific2;
