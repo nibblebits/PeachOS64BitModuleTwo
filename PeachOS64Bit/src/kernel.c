@@ -155,6 +155,9 @@ void kernel_main()
     // Initialize mouse system
     mouse_system_init();
 
+    // Initialize the keyboard
+    keyboard_init();
+
     // Initialize window system
     window_system_initialize();
 
@@ -213,8 +216,7 @@ void kernel_main()
     isr80h_register_commands();
     print("register isr80h\n");
 
-    // Initialize the keyboard
-    keyboard_init();
+
 
     // struct image* img = graphics_image_load("@:/bkground.bmp");
     // graphics_draw_image(NULL, img, 0, 0);
