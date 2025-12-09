@@ -4,6 +4,7 @@
 #include "string/string.h"
 #include "memory/memory.h"
 #include "drivers/pata.h"
+#include "drivers/nvme.h"
 #include "status.h"
 
 struct vector* disk_driver_vec = NULL;
@@ -19,6 +20,7 @@ int disk_driver_system_load_drivers()
         goto out;
     }
     // register nvme
+    res = disk_driver_register(nvme_driver_init());
 out:
     return res;
 }

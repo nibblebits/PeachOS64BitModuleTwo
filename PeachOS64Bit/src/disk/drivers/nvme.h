@@ -53,8 +53,7 @@ struct nvme_submission_queue_entry
 } __attribute__((packed));
 
 
-#define NVME_COMPLETION_QUEUE_STATUS(e) \ 
-    (((e)->status_phase_and_command_identifier >> 17) & 0x7FFFU)
+#define NVME_COMPLETION_QUEUE_STATUS(e) (((e)->status_phase_and_command_identifier >> 17) & 0x7FFFU)
 
 struct nvme_completion_queue_entry
 {

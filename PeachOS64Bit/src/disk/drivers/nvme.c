@@ -314,7 +314,7 @@ static int nvme_disk_driver_mount_for_device(struct disk_driver* driver, struct 
     p->completion_queue.ptr = kzalloc(sizeof(*p->completion_queue.ptr) * p->completion_queue.size);
     if (!p->submission_queue.ptr || !p->completion_queue.ptr)
     {
-        nvme_disk_driver_umount(disk);
+        nvme_disk_driver_unmount(disk);
         return -ENOMEM;
     }
 
@@ -524,7 +524,7 @@ static int nvme_disk_driver_read(struct disk* disk, unsigned int lba, int total_
             return rc;
         }
 
-        slba + nlb;
+        slba += nlb;
         p += (size_t) nlb * NVME_SECTOR_SIZE; 
         remaining -= nlb;
     }
