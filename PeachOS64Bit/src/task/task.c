@@ -106,11 +106,19 @@ int task_free(struct task *task)
 
 void task_next()
 {
-    struct task* next_task = task_get_next();
-    if (!next_task)
+    struct task* next_task = NULL;
+    do
     {
-        panic("No more tasks!\n");
-    }
+        int res = task_get_next_non_sleeping_task(&next_task);
+        if (res < 0)
+        {
+            panic("No more tasks or task error\n");
+        }
+        if (!next_task)
+        {
+            udelay(100);
+        }
+    } while(!next_task);
 
     task_switch(next_task);
     task_return(&next_task->registers);
@@ -211,6 +219,16 @@ void task_current_save_state(struct interrupt_frame *frame)
     task_save_state(task, frame);
 }
 
+bool task_asleep(struct task* task)
+{
+    return task->sleeping.sleep_until_microseconds > tsc_microseconds();
+}
+
+void task_sleep(struct task* task, TIME_MICROSECONDS microseconds)
+{
+    task->sleeping.sleep_until_microseconds = tsc_microseconds() * microseconds;
+}
+
 int task_page()
 {
     user_registers();
@@ -274,4 +292,34 @@ void* task_get_stack_item(struct task* task, int index)
 void* task_virtual_address_to_physical(struct task* task, void* virtual_address)
 {
     return paging_get_physical_address(task->process->paging_desc, virtual_address);
+}
+
+int task_get_next_non_sleeping_task(struct task** task_out)
+{
+    int res = 0;
+    struct task* _current_task = current_task ? current_task->next : task_head;
+    do
+    {
+        if (!_current_task)
+        {
+            _current_task = task_head;
+            if (!_current_task)
+            {
+                res = -EIO;
+                break;
+            }
+        }
+
+        if (task_asleep(_current_task))
+        {
+            _current_task = _current_task->next;
+            continue;
+        }
+
+        res = 0;
+        break;
+    } while(_current_task);
+
+    *task_out = _current_task;
+    return res;
 }
