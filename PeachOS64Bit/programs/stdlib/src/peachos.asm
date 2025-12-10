@@ -26,6 +26,7 @@ global peachos_graphic_pixels_get:function
 global peachos_graphics_create:function
 global peachos_window_redraw_region:function
 global peachos_window_title_set:function
+global peachos_udelay:function;
 
 ; void print(const char* filename)
 print:
@@ -244,4 +245,12 @@ peachos_window_title_set:
     push qword 0 ; update type
     int 0x80 
     add rsp, 24 ; restore the stack
+    ret
+
+; void peachos_udelay(uint64_t microseconds);
+peachos_udelay:
+    mov rax, 25 ; command 25 udelay
+    push qword rdi ; push the microseconds to delay by
+    int 0x80        ; invoke the kernel
+    add rsp, 8 ; restore stack
     ret

@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "file.h"
+#include "delay.h"
 
 struct window
 {
@@ -62,6 +63,12 @@ int main(int argc, char** argv)
         }
     }
 
+    for (int i = 0; i < 10; i++)
+    {
+        usleep(1000);
+        printf("Iteration: %i\n", i);
+    }
+    
     peachos_window_redraw(win);
     while(1)
     {
