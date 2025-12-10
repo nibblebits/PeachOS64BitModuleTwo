@@ -226,7 +226,7 @@ bool task_asleep(struct task* task)
 
 void task_sleep(struct task* task, TIME_MICROSECONDS microseconds)
 {
-    task->sleeping.sleep_until_microseconds = tsc_microseconds() * microseconds;
+    task->sleeping.sleep_until_microseconds = tsc_microseconds() + microseconds;
 }
 
 int task_page()
