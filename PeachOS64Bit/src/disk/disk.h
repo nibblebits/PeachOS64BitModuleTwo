@@ -3,6 +3,8 @@
 
 #include "fs/file.h"
 #include "driver.h"
+#include <stdint.h>
+#include <stddef.h>
 
 typedef unsigned int PEACHOS_DISK_TYPE;
 
@@ -16,6 +18,7 @@ typedef unsigned int PEACHOS_DISK_TYPE;
 #define PEACHOS_KERNEL_FILESYSTEM_NAME "PEACH      "
 
 struct disk_driver;
+struct disk_stream_cache;
 struct disk
 {
     PEACHOS_DISK_TYPE type;
@@ -31,7 +34,9 @@ struct disk
     // The hardware disk this disk is attached too
     struct disk* hardware_disk;
 
-    
+    // Cache for the disk.
+    struct disk_stream_cache* cache;
+
     // Set both to zero for the primary disk
     // all bounds checking is ignored if set to zero.
     size_t starting_lba;
