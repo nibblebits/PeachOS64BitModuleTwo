@@ -2,6 +2,7 @@
 FILES = ./build/kernel.asm.o ./build/kernel.o ./build/mouse/mouse.o ./build/mouse/ps2mouse.o ./build/io/pci.o ./build/io/tsc.asm.o ./build/io/tsc.o  ./build/io/cpuid.o ./build/graphics/window.o ./build/graphics/terminal.o ./build/graphics/font.o ./build/graphics/graphics.o ./build/graphics/image/image.o ./build/graphics/image/bmp.o ./build/disk/gpt.o ./build/lib/vector/vector.o ./build/idt/irq.o ./build/loader/formats/elf.o ./build/loader/formats/elfloader.o ./build/isr80h/time.o ./build/isr80h/isr80h.o ./build/isr80h/io.o ./build/isr80h/heap.o ./build/isr80h/misc.o ./build/isr80h/window.o ./build/isr80h/graphics.o ./build/isr80h/file.o ./build/isr80h/process.o ./build/keyboard/keyboard.o ./build/keyboard/classic.o ./build/gdt/gdt.o ./build/disk/driver.o ./build/disk/drivers/nvme.o ./build/disk/drivers/pata.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/fat/fat16.o ./build/fs/file.o ./build/fs/pparser.o ./build/task/process.o ./build/task/userlandptr.o ./build/task/task.o ./build/memory/heap/multiheap.o ./build/memory/paging/paging.o  ./build/idt/idt.o ./build/idt/idt.asm.o ./build/task/tss.asm.o ./build/task/task.asm.o ./build/memory/paging/paging.asm.o ./build/io/io.asm.o ./build/string/string.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/memory.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+.PHONY: all clean user_programs user_programs_clean
 
 all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	rm -rf ./bin/os.bin
@@ -205,18 +206,22 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	x86_64-elf-gcc $(INCLUDES) -I./src/string $(FLAGS) -std=gnu99 -c ./src/string/string.c -o ./build/string/string.o
 
 user_programs:
-	cd ./programs/simple && $(MAKE) all
-	cd ./programs/stdlib && $(MAKE) all
-	cd ./programs/blank && $(MAKE) all
-	cd ./programs/shell && $(MAKE) all
+	$(MAKE) -C ./programs/stdlib all
+#	$(MAKE) -C ./programs/containerlib all
+#	$(MAKE) -C ./programs/guilib all
+#	$(MAKE) -C ./programs/simple_elf_test all
+	$(MAKE) -C ./programs/blank all
+	$(MAKE) -C ./programs/shell all
+	$(MAKE) -C ./programs/simple all
 
 user_programs_clean:
-	cd ./programs/simple && $(MAKE) clean
-	cd ./programs/stdlib && $(MAKE) clean
-	cd ./programs/blank && $(MAKE) clean
-	cd ./programs/shell && $(MAKE) clean
+	$(MAKE) -C ./programs/stdlib clean
+	$(MAKE) -C ./programs/containerlib clean
+	$(MAKE) -C ./programs/guilib clean
+	$(MAKE) -C ./programs/blank clean
+	$(MAKE) -C ./programs/shell clean 
 
-clean: 
+clean user_programs_clean: 
 	rm -rf ./bin/boot.bin
 	rm -rf ./bin/kernel.bin
 	rm -rf ./bin/os.bin
@@ -225,4 +230,4 @@ clean:
 	rm -rf ./bin/*
 	rm -rf ./build/*
 	# Recursivly remove all .o FILES
-	find build -type f -name "*.o" | xargs rm -f
+	find build -type f -name "*.o" -delete 2>/dev/null || true
