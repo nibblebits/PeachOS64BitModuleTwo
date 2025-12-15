@@ -462,6 +462,12 @@ void *process_realloc(struct process *process, void *old_virt_ptr, size_t new_si
     void *new_ptr = NULL;
     void *old_phys_ptr = NULL;
     size_t old_allocation_index = 0;
+
+    if (old_virt_ptr == NULL)
+    {
+        return process_malloc(process, new_size);
+    }
+    
     res = process_allocation_exists(process, old_virt_ptr, &old_allocation_index);
     if (res < 0)
     {
