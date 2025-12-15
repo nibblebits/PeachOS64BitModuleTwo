@@ -111,6 +111,7 @@ peachos_fopen:
 peachos_fclose:
     mov rax, 11 ; Command 11 fclose
     push qword rdi 
+    int 0x80    ; call fclose.
     add rsp, 8  ; restore the stack
     ret
 
