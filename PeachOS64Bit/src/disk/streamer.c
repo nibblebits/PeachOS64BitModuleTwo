@@ -199,10 +199,7 @@ struct disk_stream* diskstreamer_new(int disk_id)
         return 0;
     }
 
-    struct disk_stream* streamer = kzalloc(sizeof(struct disk_stream));
-    streamer->pos = 0;
-    streamer->disk = disk;
-    return streamer;
+    return diskstreamer_new_from_disk(disk);
 }
 
 struct disk_stream* diskstreamer_new_from_disk(struct disk* disk)

@@ -236,7 +236,7 @@ int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf)
         }
     }
 
-    if (!disk->driver->functions.read)
+    if (!idisk->driver->functions.read)
     {
         return -EIO;
     }
