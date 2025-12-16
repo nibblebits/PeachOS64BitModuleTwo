@@ -26,7 +26,7 @@ struct disk_stream_cache_bucket_level1* diskstreamer_cache_bucket_level1_get(str
     {
         size_t old_total = cache->total;
         size_t new_total = index+1;
-        size_t new_size = new_total * sizeof(struct disk_Stream_cache_bucket_level1**);
+        size_t new_size = new_total * sizeof(struct disk_stream_cache_bucket_level1**);
 
         struct disk_stream_cache_bucket_level1 **new_buckets = krealloc(cache->buckets, new_size);
         if (!new_buckets)
@@ -209,6 +209,7 @@ struct disk_stream* diskstreamer_new_from_disk(struct disk* disk)
 {
     struct disk_stream* streamer = kzalloc(sizeof(struct disk_stream));
     streamer->pos = 0;
+    streamer->sector_size = disk->sector_size;
     streamer->disk = disk;
     return streamer;
 }
@@ -266,7 +267,7 @@ int diskstreamer_read(struct disk_stream* stream, void* out, int total)
         int cache_res = diskstreamer_cache_find(stream->disk, real_offset, &cache_sector);
         if (cache_res < 0)
         {
-            res = cache_res
+            res = cache_res;
             goto out;
         }
 

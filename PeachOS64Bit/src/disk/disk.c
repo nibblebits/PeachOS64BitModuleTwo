@@ -6,6 +6,7 @@
 #include "memory/heap/kheap.h"
 #include "string/string.h"
 #include "lib/vector/vector.h"
+#include "disk/streamer.h"
 
 struct vector* disk_vector = NULL;
 
@@ -97,6 +98,18 @@ int disk_filesystem_mount(struct disk* disk)
     return 0;
 }
 
+long disk_real_sector(struct disk* idisk, unsigned int lba)
+{
+    size_t absolute_lba = idisk->starting_lba+lba;
+    return absolute_lba;
+}
+
+long disk_real_offset(struct disk* idisk, unsigned int lba)
+{
+    size_t absolute_lba = disk_real_sector(idisk, lba);
+    return absolute_lba * idisk->sector_size;
+}
+
 int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int type, int starting_lba, int ending_lba, size_t sector_size, void* driver_private_data, struct disk** disk_out)
 {
     int res = 0;
@@ -138,7 +151,7 @@ int disk_create_new(struct disk_driver* driver, struct disk* hardware_disk, int 
     disk->driver = driver;
     disk->driver_private = driver_private_data;
     disk->hardware_disk = hardware_disk;
-
+    disk->cache = diskstreamer_cache_new();
 
     if (disk_out)
     {

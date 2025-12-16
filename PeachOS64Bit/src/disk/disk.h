@@ -59,5 +59,6 @@ struct disk* disk_primary();
 int disk_filesystem_mount(struct disk* disk);
 int disk_create_partition(struct disk* disk, int starting_lba, int ending_lba, struct disk** partition_disk_out);
 void* disk_private_data_driver(struct disk* disk);
-
+long disk_real_sector(struct disk* idisk, unsigned int lba);
+long disk_real_offset(struct disk* idisk, unsigned int lba);
 #endif

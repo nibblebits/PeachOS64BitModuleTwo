@@ -60,6 +60,7 @@ struct disk_stream_cache
 struct disk_stream
 {
     int pos;
+    int sector_size;
     struct disk* disk;
 };
 
@@ -73,5 +74,6 @@ int diskstreamer_seek(struct disk_stream* stream, int pos);
 int diskstreamer_read(struct disk_stream* stream, void* out, int total);
 void diskstreamer_close(struct disk_stream* stream);
 struct disk_stream* diskstreamer_new_from_disk(struct disk* disk);
+struct disk_stream_cache* diskstreamer_cache_new();
 
 #endif
