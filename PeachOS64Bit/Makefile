@@ -16,6 +16,7 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 	sudo cp ./data/images/fonts/sysfont.bmp /mnt/d/sysfont.bmp
 	sudo cp ./programs/blank/blank.elf /mnt/d
 	sudo cp ./programs/shell/shell.elf /mnt/d
+	sudo cp ./programs/calculator/calc.elf /mnt/d
 
 ./bin/kernel.bin: $(FILES)
 	x86_64-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
@@ -207,8 +208,9 @@ all: ./bin/boot.bin ./bin/kernel.bin user_programs
 
 user_programs:
 	$(MAKE) -C ./programs/stdlib all
-#	$(MAKE) -C ./programs/containerlib all
-#	$(MAKE) -C ./programs/guilib all
+	$(MAKE) -C ./programs/containerlib all
+	$(MAKE) -C ./programs/guilib all
+	$(MAKE) -C ./programs/calculator all
 #	$(MAKE) -C ./programs/simple_elf_test all
 	$(MAKE) -C ./programs/blank all
 	$(MAKE) -C ./programs/shell all
@@ -217,6 +219,7 @@ user_programs:
 user_programs_clean:
 	$(MAKE) -C ./programs/stdlib clean
 	$(MAKE) -C ./programs/containerlib clean
+	$(MAKE) -C ./programs/calculator clean
 	$(MAKE) -C ./programs/guilib clean
 	$(MAKE) -C ./programs/blank clean
 	$(MAKE) -C ./programs/shell clean 

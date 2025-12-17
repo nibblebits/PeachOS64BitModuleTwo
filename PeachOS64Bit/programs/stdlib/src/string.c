@@ -1,3 +1,17 @@
+/*
+ * Copyright (C) 2025 Daniel McCarthy <daniel@dragonzap.com>
+ * Part of the PeachOS Part Two Development Series.
+ * https://github.com/nibblebits/PeachOS64BitCourse
+ * https://github.com/nibblebits/PeachOS64BitModuleTwo
+ * Licensed under the GNU General Public License version 2 (GPLv2).
+ *
+ * Community contributors to this source file:
+ * NONE AS OF YET
+ * ----------------
+ * Disclaimer: Contributors are hobbyists that contributed to the public source code, they are not affiliated or endorsed by Daniel McCarthy the author of the PeachOS Kernel      
+ * development video series. Contributors did not contribute to the video content or the teaching and have no intellectual property rights over the video content for the course video * material and did not contribute to the video material in anyway.
+ */
+
 #include "string.h"
 
 char tolower(char s1)
@@ -10,10 +24,10 @@ char tolower(char s1)
     return s1;
 }
 
-int strlen(const char* ptr)
+size_t strlen(const char *ptr)
 {
-    int i = 0;
-    while(*ptr != 0)
+    size_t i = 0;
+    while (*ptr != 0)
     {
         i++;
         ptr += 1;
@@ -22,9 +36,9 @@ int strlen(const char* ptr)
     return i;
 }
 
-int strnlen(const char* ptr, int max)
+size_t strnlen(const char *ptr, size_t max)
 {
-    int i = 0;
+    size_t i = 0;
     for (i = 0; i < max; i++)
     {
         if (ptr[i] == 0)
@@ -34,10 +48,10 @@ int strnlen(const char* ptr, int max)
     return i;
 }
 
-int strnlen_terminator(const char* str, int max, char terminator)
+size_t strnlen_terminator(const char *str, size_t max, char terminator)
 {
-    int i = 0;
-    for(i = 0; i < max; i++)
+    size_t i = 0;
+    for (i = 0; i < max; i++)
     {
         if (str[i] == '\0' || str[i] == terminator)
             break;
@@ -46,10 +60,10 @@ int strnlen_terminator(const char* str, int max, char terminator)
     return i;
 }
 
-int istrncmp(const char* s1, const char* s2, int n)
+int istrncmp(const char *s1, const char *s2, int n)
 {
     unsigned char u1, u2;
-    while(n-- > 0)
+    while (n-- > 0)
     {
         u1 = (unsigned char)*s1++;
         u2 = (unsigned char)*s2++;
@@ -61,11 +75,11 @@ int istrncmp(const char* s1, const char* s2, int n)
 
     return 0;
 }
-int strncmp(const char* str1, const char* str2, int n)
+int strncmp(const char *str1, const char *str2, int n)
 {
     unsigned char u1, u2;
 
-    while(n-- > 0)
+    while (n-- > 0)
     {
         u1 = (unsigned char)*str1++;
         u2 = (unsigned char)*str2++;
@@ -78,10 +92,10 @@ int strncmp(const char* str1, const char* str2, int n)
     return 0;
 }
 
-char* strcpy(char* dest, const char* src)
+char *strcpy(char *dest, const char *src)
 {
-    char* res = dest;
-    while(*src != 0)
+    char *res = dest;
+    while (*src != 0)
     {
         *dest = *src;
         src += 1;
@@ -93,10 +107,10 @@ char* strcpy(char* dest, const char* src)
     return res;
 }
 
-char* strncpy(char* dest, const char* src, int count)
+char *strncpy(char *dest, const char *src, int count)
 {
     int i = 0;
-    for (i = 0; i < count-1; i++)
+    for (i = 0; i < count - 1; i++)
     {
         if (src[i] == 0x00)
             break;
@@ -117,25 +131,25 @@ int tonumericdigit(char c)
     return c - 48;
 }
 
-char* sp = 0;
-char* strtok(char* str, const char* delimiters)
+char *sp = 0;
+char *strtok(char *str, const char *delimiters)
 {
     int i = 0;
     int len = strlen(delimiters);
     if (!str && !sp)
         return 0;
-    
+
     if (str && !sp)
     {
         sp = str;
     }
 
-    char* p_start = sp;
-    while(1)
+    char *p_start = sp;
+    while (1)
     {
         for (i = 0; i < len; i++)
         {
-            if(*p_start == delimiters[i])
+            if (*p_start == delimiters[i])
             {
                 p_start++;
                 break;
@@ -156,7 +170,7 @@ char* strtok(char* str, const char* delimiters)
     }
 
     // Find end of substring
-    while(*sp != '\0')
+    while (*sp != '\0')
     {
         for (i = 0; i < len; i++)
         {

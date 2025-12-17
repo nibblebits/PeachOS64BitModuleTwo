@@ -1,6 +1,7 @@
-FILES=./build/start.asm.o ./build/start.o ./build/peachos.asm.o ./build/file.o ./build/peachos.o ./build/stdlib.o ./build/delay.o ./build/stdio.o ./build/string.o ./build/memory.o
-INCLUDES=-I./src
+FILES=./build/start.asm.o ./build/start.o ./build/peachos.asm.o ./build/peachos.o ./build/delay.o ./build/stdlib.o  ./build/stdio.o ./build/string.o ./build/memory.o ./build/file.o 
+INCLUDES=-I./src -I../guilib/src
 FLAGS= -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+.PHONY: all clean
 
 all: ${FILES}
 	x86_64-elf-ld -m elf_x86_64 -relocatable ${FILES} -o ./stdlib.elf
@@ -14,12 +15,12 @@ all: ${FILES}
 ./build/peachos.o: ./src/peachos.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/peachos.c -o ./build/peachos.o
 
+./build/delay.o: ./src/delay.c
+	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/delay.c -o ./build/delay.o
+
+
 ./build/stdlib.o: ./src/stdlib.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/stdlib.c -o ./build/stdlib.o
-
-
-./build/file.o: ./src/file.c
-	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/file.c -o ./build/file.o
 
 ./build/stdio.o: ./src/stdio.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/stdio.c -o ./build/stdio.o
@@ -28,17 +29,17 @@ all: ${FILES}
 ./build/string.o: ./src/string.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/string.c -o ./build/string.o
 
-./build/delay.o: ./src/delay.c
-	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/delay.c -o ./build/delay.o
-
-
 ./build/memory.o: ./src/memory.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/memory.c -o ./build/memory.o
+
+./build/file.o: ./src/file.c
+	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/file.c -o ./build/file.o
+
 
 ./build/start.o: ./src/start.c
 	x86_64-elf-gcc ${INCLUDES} $(FLAGS) -std=gnu99 -c ./src/start.c -o ./build/start.o
 
 
 clean:
-	rm -rf ${FILES}
-	rm ./stdlib.elf
+	rm -f ${FILES}
+	rm -f ./stdlib.elf
