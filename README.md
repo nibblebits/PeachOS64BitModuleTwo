@@ -1,5 +1,12 @@
 # PeachOS64 — Build a Modern 64-Bit Operating System From Scratch
 
+
+<p align="center">
+  <a href="https://dragonzap.com/offer/developing-a-multithreaded-kernel-from-scratch-part-two-full-series">
+ <img width="650" alt="PeachOS Part Two Kernel Dev Series Click To Obtain" src="https://github.com/user-attachments/assets/4022f9b3-a409-4b57-9454-eddec561fa18" />
+  </a>
+</p>
+
 This repository is the companion source code for **Part 2 of the PeachOS series**.  
 In [Part 1](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch?coupon=GITHUBKERNELDISCOUNT), we built **PeachOS**, a fully functioning **32-bit multitasking operating system**.  
 
@@ -11,6 +18,8 @@ In **Part 2**, we take the project to the next level:
 [![Get the Course Part 2 Module One](https://img.shields.io/badge/Get%20%20Module%20One%20-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch-part-two-module-one)
 
 [![Get the Course Part 2 Module Two](https://img.shields.io/badge/Get%20Module%20Two-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/course/developing-a-multithreaded-kernel-from-scratch-part-two-module-two)
+
+[![CLICK FOR FULL PART 2 SERIES BUNDLE](https://img.shields.io/badge/Get%20Full%20Part%202%20Series%20Bundle%20Offer-blue?style=for-the-badge&logo=appveyor)](https://dragonzap.com/offer/developing-a-multithreaded-kernel-from-scratch-part-two-full-series)
 
 ## What You’ll Learn in This Course
 This isn’t just theory—you’ll build a complete, modern OS step by step, starting from the bootloader all the way to a graphical desktop environment.
